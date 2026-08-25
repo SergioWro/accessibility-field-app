@@ -1,5 +1,6 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
+const APP_VERSION = "1.0.1";
 
 const catalog = {
   clusters: [
@@ -73,14 +74,16 @@ const catalog = {
       {
         id: "CHK-S1",
         title: "רחבת המתנה נגישה",
-        threshold: "גישה רציפה ורוחב מעבר תקין",
-        sourceRefs: ["FR-2.1", "FR-4.2"],
+        threshold: "רחבת היערכות עירונית 250×200 ס״מ; מקום המתנה לכיסא גלגלים 120×80 ס״מ; מעבר חופשי בחזית סככה 110 ס״מ לפחות",
+        measurementTargets: "רחבת היערכות עירונית: 250×200 ס״מ לפחות. מקום המתנה לכיסא גלגלים: 120×80 ס״מ לפחות. מעבר חופשי בחזית סככה: 110 ס״מ לפחות.",
+        sourceRefs: ["תקנות נגישות תחבורה ציבורית, תוספת חמישית", "משרד התחבורה, הנחיות תחנות אוטובוס 2025", "FR-2.1", "FR-4.2"],
       },
       {
         id: "CHK-S2",
         title: "שילוט תחנה קריא",
-        threshold: "ניגודיות וזיהוי ברור",
-        sourceRefs: ["NFR-11", "FR-11.4"],
+        threshold: "שילוט קריא, ניגודיות וזיהוי ברור",
+        measurementTargets: "בשלט סטטי לכל קו: כל צלע 20 ס״מ לפחות; גובה אות 25 מ״מ ורוחב 5 מ״מ לפחות. בשילוט נגיש בולט: בליטה 0.8 מ״מ לפחות וגובה אות/ספרה 12 מ״מ לפחות.",
+        sourceRefs: ["תקנות נגישות תחבורה ציבורית, תוספת חמישית", "משרד התחבורה, הנחיות תחנות אוטובוס 2025", "NFR-11", "FR-11.4"],
       },
     ],
     service_center: [
@@ -186,6 +189,7 @@ let reportInspectionId = null;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
+  appVersion: document.getElementById("app-version"),
   views: {
     dashboard: document.getElementById("dashboard-view"),
     inspection: document.getElementById("inspection-view"),
@@ -210,6 +214,7 @@ const els = {
   saveDraft: document.getElementById("save-draft"),
   prepareReport: document.getElementById("prepare-report"),
   correctionReport: document.getElementById("correction-report"),
+  correctionReportDate: document.getElementById("correction-report-date"),
   correctionReportContent: document.getElementById("correction-report-content"),
   saveCorrectionReport: document.getElementById("save-correction-report"),
   exportJson: document.getElementById("export-json"),
@@ -223,6 +228,7 @@ let installPromptEvent = null;
 init();
 
 function init() {
+  els.appVersion.textContent = `גרסה ${APP_VERSION}`;
   populateInspectionForm();
   bindEvents();
   registerServiceWorker();
@@ -375,6 +381,7 @@ function render() {
 function renderSystemStatus(message) {
   const activeInspection = state.inspections.find((item) => item.id === state.activeInspectionId);
   const rows = [
+    ["גרסת אפליקציה", APP_VERSION],
     ["משתמש", "Single-user local profile"],
     ["סטטוס AI", state.settings.apiKeyMasked ? "BYOK הוגדר" : "ללא מפתח שמור"],
     ["ממתין לסנכרון", String(state.pendingSyncCount)],
@@ -566,10 +573,12 @@ function renderAiAssessment(issue, resultElement, controlsElement) {
 
   const assessment = issue.aiAssessment;
   const confidence = Math.round(Number(assessment.confidence || 0) * 100);
+  const inspection = state.inspections.find((item) => item.id === issue.inspectionId);
   resultElement.textContent = [
     `תצפית AI: ${assessment.observation || "לא נמסרה תצפית."}`,
     `הערכת AI: ${recommendationLabel(assessment.recommendation)}`,
     `פעולה מוצעת: ${assessment.recommendedAction || "נדרשת בדיקה מקצועית בשטח."}`,
+    `יעדי מדידה: ${measurementTargetsForIssue(inspection, issue)}`,
     `בסיס נורמטיבי מוצע: ${assessment.legalBasis || "נדרש אימות תחולה מקצועי."}`,
     `מגבלות: ${assessment.limitations || "הערכה מצילום בלבד."}`,
     `ודאות: ${confidence}%`,
@@ -607,6 +616,7 @@ function renderCorrectionReport() {
     .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
     .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
   els.correctionReport.classList.remove("hidden");
+  els.correctionReportDate.textContent = `תאריך ביצוע הביקורת: ${formatDate(inspection.createdAt)}`;
   els.correctionReportContent.replaceChildren();
 
   if (!issues.length) {
@@ -626,10 +636,12 @@ function renderCorrectionReport() {
     priority.textContent = `עדיפות: ${correctionPriority(issue.severity)}`;
     const action = document.createElement("p");
     action.textContent = `לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
+    const target = document.createElement("p");
+    target.textContent = `יעד מדידה: ${measurementTargetsForIssue(inspection, issue)}`;
     const basis = document.createElement("p");
     basis.className = "muted small";
     basis.textContent = `בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`;
-    entry.append(heading, priority, action, basis);
+    entry.append(heading, priority, action, target, basis);
     els.correctionReportContent.append(entry);
   });
 }
@@ -641,7 +653,7 @@ function saveCorrectionReport() {
     .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
     .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
   const lines = [
-    `# דוח תיקון ליקויי נגישות: ${inspection.siteName}`,
+    `# דוח לתיקון ממצאים: ${inspection.siteName}`,
     "",
     `תאריך ביקורת: ${formatDate(inspection.createdAt)}`,
     `כתובת: ${inspection.address}`,
@@ -655,6 +667,7 @@ function saveCorrectionReport() {
     lines.push(`${index + 1}. ${issue.title}`);
     lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
     lines.push(`   - לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
+    lines.push(`   - יעד מדידה: ${measurementTargetsForIssue(inspection, issue)}`);
     lines.push(`   - בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`);
     lines.push("");
   });
@@ -674,6 +687,15 @@ function correctionPriority(severity) {
 
 function correctionPriorityRank(severity) {
   return { blocking: 1, high: 2, medium: 3, low: 4 }[severity] || 5;
+}
+
+function measurementTargetsForIssue(inspection, issue) {
+  const checklistItem = inspection?.checklist.find((item) => item.id === issue.checklistId);
+  const verifiedTargets = {
+    "CHK-S1": "רחבת היערכות עירונית: 250×200 ס״מ לפחות. מקום המתנה לכיסא גלגלים: 120×80 ס״מ לפחות. מעבר חופשי בחזית סככה: 110 ס״מ לפחות.",
+    "CHK-S2": "בשלט סטטי לכל קו: כל צלע 20 ס״מ לפחות; גובה אות 25 מ״מ ורוחב 5 מ״מ לפחות. בשילוט נגיש בולט: בליטה 0.8 מ״מ לפחות וגובה אות/ספרה 12 מ״מ לפחות.",
+  };
+  return issue.measurementTargets || checklistItem?.measurementTargets || verifiedTargets[issue.checklistId] || checklistItem?.threshold || "אין יעד מדידה כמותי מוגדר לפריט זה; נדרש אימות תחולה מקצועי.";
 }
 
 function reviewAiAssessment(issueId, decision) {
@@ -706,6 +728,7 @@ function createOrUpdateIssue(inspection, checklistItem, description, severity, p
       gps: inspection.gps || "לא הוזן",
       aiStatus: "PENDING_AI",
       sourceRefs: checklistItem.sourceRefs,
+      measurementTargets: checklistItem.measurementTargets || checklistItem.threshold,
     };
     state.issues.unshift(issue);
     checklistItem.issueId = issue.id;
@@ -723,9 +746,10 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
     "אתה מסייע לבודק נגישות. נתח את הצילום בהקשר של פריט הצ'קליסט בלבד.",
     `פריט: ${checklistItem.title}.`,
     `סף נדרש: ${checklistItem.threshold}.`,
+    `יעדי מדידה מאומתים: ${checklistItem.measurementTargets || checklistItem.threshold}.`,
     `סוג אתר: ${siteTypeLabel(inspection.siteType)}.`,
     `מקורות אפשריים לבדיקה לפי אינדקס: ${legalBases.map((basis, index) => `${index}=${basis}`).join(" | ")}.`,
-    "החזר בעברית תצפית קונקרטית על מה שנראה בצילום, כולל האלמנטים שנצפו והקשרם לפריט. אם אין די ראיות, הסבר בדיוק מה חסר. אל תקבע תאימות או כשל סופיים.",
+    "החזר בעברית תצפית קונקרטית על מה שנראה בצילום, כולל האלמנטים שנצפו והקשרם לפריט. אם הפעולה דורשת מדידה, ציין רק את יעדי המדידה שנמסרו לך לעיל. אם אין די ראיות, הסבר בדיוק מה חסר. אל תקבע תאימות או כשל סופיים.",
   ].join(" ");
   const schema = {
     type: "object",
@@ -768,6 +792,10 @@ function legalBasesForInspection(inspection, checklistItem) {
   const bases = ["חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998"];
   if (directStandard) bases.push(directStandard);
   if (inspection.cluster === "built") bases.push('ת"י 1918 והתקנות החלות לפי סוג המקום והמסלול');
+  if (inspection.siteType === "bus_stop") {
+    bases.push("תקנות נגישות תחבורה ציבורית, תוספת חמישית");
+    bases.push("משרד התחבורה, הנחיות תחנות אוטובוס 2025");
+  }
   if (inspection.cluster === "service" || inspection.cluster === "digital") {
     bases.push("תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013");
   }

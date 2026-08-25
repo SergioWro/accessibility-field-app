@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0c5b53" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>נגישות בשטח</title>
+    <title>נגישון</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon.svg" />
     <link rel="stylesheet" href="./styles.css" />
@@ -15,8 +15,8 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <p class="eyebrow">SRD v3.0</p>
-          <h1>נגישות בשטח</h1>
+          <p id="app-version" class="eyebrow">גרסה</p>
+          <h1>נגישון</h1>
           <p class="muted">MVP מקומי, single-user, local-first</p>
         </div>
         <nav class="nav" aria-label="ניווט ראשי">
@@ -132,7 +132,8 @@
             <section id="correction-report" class="panel hidden" aria-live="polite">
               <div class="panel-head">
                 <div>
-                  <h4>דוח תיקון ליקויים</h4>
+                  <h4>דוח לתיקון ממצאים</h4>
+                  <p id="correction-report-date" class="muted small"></p>
                   <p class="muted small">סדר פעולות מוצע. המקורות דורשים אימות תחולה מקצועי לפני ביצוע.</p>
                 </div>
                 <button id="save-correction-report">שמור דוח תיקונים</button>
