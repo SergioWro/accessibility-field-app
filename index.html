@@ -122,9 +122,22 @@
                   <h4 id="active-inspection-name">ביקורת פעילה</h4>
                   <p id="active-inspection-meta" class="muted small"></p>
                 </div>
-                <button id="save-draft" class="ghost">שמור טיוטה</button>
+                <div class="toolbar">
+                  <button id="prepare-report" class="ghost">הכן דוח תיקונים</button>
+                  <button id="save-draft" class="ghost">שמור טיוטה</button>
+                </div>
               </div>
               <div id="checklist-container" class="checklist"></div>
+            </section>
+            <section id="correction-report" class="panel hidden" aria-live="polite">
+              <div class="panel-head">
+                <div>
+                  <h4>דוח תיקון ליקויים</h4>
+                  <p class="muted small">סדר פעולות מוצע. המקורות דורשים אימות תחולה מקצועי לפני ביצוע.</p>
+                </div>
+                <button id="save-correction-report">שמור דוח תיקונים</button>
+              </div>
+              <div id="correction-report-content" class="stack-list"></div>
             </section>
           </div>
         </section>

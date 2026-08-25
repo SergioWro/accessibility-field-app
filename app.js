@@ -182,6 +182,7 @@ const defaultState = {
 };
 
 let state = loadState();
+let reportInspectionId = null;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -207,6 +208,10 @@ const els = {
   seedDemo: document.getElementById("seed-demo"),
   clearData: document.getElementById("clear-data"),
   saveDraft: document.getElementById("save-draft"),
+  prepareReport: document.getElementById("prepare-report"),
+  correctionReport: document.getElementById("correction-report"),
+  correctionReportContent: document.getElementById("correction-report-content"),
+  saveCorrectionReport: document.getElementById("save-correction-report"),
   exportJson: document.getElementById("export-json"),
   exportCsv: document.getElementById("export-csv"),
   installApp: document.getElementById("install-app"),
@@ -262,6 +267,11 @@ function bindEvents() {
     saveState("draft_saved");
     renderSystemStatus("הטיוטה נשמרה מקומית.");
   });
+  els.prepareReport.addEventListener("click", () => {
+    reportInspectionId = state.activeInspectionId;
+    renderCorrectionReport();
+  });
+  els.saveCorrectionReport.addEventListener("click", saveCorrectionReport);
   els.exportJson.addEventListener("click", exportJson);
   els.exportCsv.addEventListener("click", exportCsv);
   window.addEventListener("beforeinstallprompt", (event) => {
@@ -357,6 +367,7 @@ function render() {
   renderSystemStatus();
   renderDashboard();
   renderActiveInspection();
+  renderCorrectionReport();
   renderIssues();
   renderSettings();
 }
@@ -559,6 +570,7 @@ function renderAiAssessment(issue, resultElement, controlsElement) {
     `תצפית AI: ${assessment.observation || "לא נמסרה תצפית."}`,
     `הערכת AI: ${recommendationLabel(assessment.recommendation)}`,
     `פעולה מוצעת: ${assessment.recommendedAction || "נדרשת בדיקה מקצועית בשטח."}`,
+    `בסיס נורמטיבי מוצע: ${assessment.legalBasis || "נדרש אימות תחולה מקצועי."}`,
     `מגבלות: ${assessment.limitations || "הערכה מצילום בלבד."}`,
     `ודאות: ${confidence}%`,
   ].join("\n");
@@ -582,6 +594,86 @@ function renderAiAssessment(issue, resultElement, controlsElement) {
     status.textContent = issue.aiStatus === "HUMAN_APPROVED" ? "הצעת ה-AI אושרה אנושית." : "הצעת ה-AI נדחתה אנושית.";
     controlsElement.append(status);
   }
+}
+
+function renderCorrectionReport() {
+  const inspection = state.inspections.find((item) => item.id === reportInspectionId);
+  if (!inspection) {
+    els.correctionReport.classList.add("hidden");
+    return;
+  }
+
+  const issues = state.issues
+    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
+  els.correctionReport.classList.remove("hidden");
+  els.correctionReportContent.replaceChildren();
+
+  if (!issues.length) {
+    const empty = document.createElement("div");
+    empty.className = "list-row";
+    empty.textContent = "אין ליקויים פתוחים בביקורת זו, ולכן אין פעולות תיקון להציג.";
+    els.correctionReportContent.append(empty);
+    return;
+  }
+
+  issues.forEach((issue, index) => {
+    const entry = document.createElement("article");
+    entry.className = "issue-card";
+    const heading = document.createElement("strong");
+    heading.textContent = `${index + 1}. ${issue.title}`;
+    const priority = document.createElement("p");
+    priority.textContent = `עדיפות: ${correctionPriority(issue.severity)}`;
+    const action = document.createElement("p");
+    action.textContent = `לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
+    const basis = document.createElement("p");
+    basis.className = "muted small";
+    basis.textContent = `בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`;
+    entry.append(heading, priority, action, basis);
+    els.correctionReportContent.append(entry);
+  });
+}
+
+function saveCorrectionReport() {
+  const inspection = state.inspections.find((item) => item.id === reportInspectionId);
+  if (!inspection) return;
+  const issues = state.issues
+    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
+  const lines = [
+    `# דוח תיקון ליקויי נגישות: ${inspection.siteName}`,
+    "",
+    `תאריך ביקורת: ${formatDate(inspection.createdAt)}`,
+    `כתובת: ${inspection.address}`,
+    `מבצע הסקר: ${inspection.inspector}`,
+    "",
+    "## פעולות לתיקון",
+    "",
+  ];
+  if (!issues.length) lines.push("אין ליקויים פתוחים בביקורת זו.");
+  issues.forEach((issue, index) => {
+    lines.push(`${index + 1}. ${issue.title}`);
+    lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
+    lines.push(`   - לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
+    lines.push(`   - בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`);
+    lines.push("");
+  });
+  lines.push("הערה: המקור המוצג הוא עזר לבדיקת תחולה ואינו מחליף הכרעה של מורשה/יועץ נגישות מוסמך.");
+  downloadFile(`correction-report-${inspection.siteName.replaceAll(/[^\p{L}\p{N}]+/gu, "-")}.md`, lines.join("\n"), "text/markdown;charset=utf-8");
+}
+
+function correctionPriority(severity) {
+  const labels = {
+    blocking: "מיידי - מונע גישה",
+    high: "דחוף - לטיפול בהקדם",
+    medium: "חשוב - לתכנון ותיקון קרוב",
+    low: "מתוכנן - לשילוב בתחזוקה",
+  };
+  return labels[severity] || "נדרש תיעדוף מקצועי";
+}
+
+function correctionPriorityRank(severity) {
+  return { blocking: 1, high: 2, medium: 3, low: 4 }[severity] || 5;
 }
 
 function reviewAiAssessment(issueId, decision) {
@@ -626,11 +718,13 @@ function createOrUpdateIssue(inspection, checklistItem, description, severity, p
 
 async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
   const imageUrl = await readFileAsDataUrl(photoFile);
+  const legalBases = legalBasesForInspection(inspection, checklistItem);
   const prompt = [
     "אתה מסייע לבודק נגישות. נתח את הצילום בהקשר של פריט הצ'קליסט בלבד.",
     `פריט: ${checklistItem.title}.`,
     `סף נדרש: ${checklistItem.threshold}.`,
     `סוג אתר: ${siteTypeLabel(inspection.siteType)}.`,
+    `בסיסים נורמטיביים אפשריים לבדיקה: ${legalBases.join(" | ")}.`,
     "החזר בעברית תצפית קונקרטית על מה שנראה בצילום, כולל האלמנטים שנצפו והקשרם לפריט. אם אין די ראיות, הסבר בדיוק מה חסר. אל תקבע תאימות או כשל סופיים.",
   ].join(" ");
   const schema = {
@@ -640,10 +734,11 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
       observation: { type: "string" },
       recommendation: { type: "string", enum: ["possible_accessibility_issue", "no_clear_accessibility_issue", "insufficient_evidence"] },
       recommendedAction: { type: "string" },
+      legalBasis: { type: "string", enum: legalBases },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       limitations: { type: "string" },
     },
-    required: ["observation", "recommendation", "recommendedAction", "confidence", "limitations"],
+    required: ["observation", "recommendation", "recommendedAction", "legalBasis", "confidence", "limitations"],
   };
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -664,6 +759,18 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
   const assessment = JSON.parse(output);
   assessment.confidence = Number(assessment.confidence);
   return assessment;
+}
+
+function legalBasesForInspection(inspection, checklistItem) {
+  const directStandard = checklistItem.sourceRefs.find((source) => source.startsWith('ת"י 1918'));
+  const bases = ["חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998"];
+  if (directStandard) bases.push(directStandard);
+  if (inspection.cluster === "built") bases.push('ת"י 1918 והתקנות החלות לפי סוג המקום והמסלול');
+  if (inspection.cluster === "service" || inspection.cluster === "digital") {
+    bases.push("תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013");
+  }
+  if (inspection.cluster === "special") bases.push("דרישות נגישות ייעודיות לפי תחום השימוש והתחולה");
+  return [...new Set(bases)];
 }
 
 function readFileAsDataUrl(file) {
