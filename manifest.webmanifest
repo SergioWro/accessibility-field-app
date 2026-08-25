@@ -1,0 +1,21 @@
+{
+  "name": "נגישות בשטח",
+  "short_name": "נגישות בשטח",
+  "description": "כלי מקומי לתיעוד, מעקב וייצוא ליקויי נגישות.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f1e9",
+  "theme_color": "#0c5b53",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c5b53" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>נגישות בשטח</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <p class="eyebrow">SRD v3.0</p>
+          <h1>נגישות בשטח</h1>
+          <p class="muted">MVP מקומי, single-user, local-first</p>
+        </div>
+        <nav class="nav" aria-label="ניווט ראשי">
+          <button class="nav-link is-active" data-view="dashboard">לוח בקרה</button>
+          <button class="nav-link" data-view="inspection">ביקורת חדשה</button>
+          <button class="nav-link" data-view="issues">ליקויים</button>
+          <button class="nav-link" data-view="settings">הגדרות ו-BYOK</button>
+        </nav>
+        <section class="sync-card">
+          <h2>מצב מערכת</h2>
+          <dl id="system-status"></dl>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <header class="hero">
+          <div>
+            <p class="eyebrow">כלי עבודה שדה</p>
+            <h2>תיעוד, מעקב וייצוא ליקויי נגישות</h2>
+            <p class="muted">
+              האפליקציה מממשת את ליבת ה-SRD: סבבי ביקורת, צ׳קליסטים דינמיים, חומרה, סטטוסי טיפול, ייצוא מקומי וניתוח AI אופציונלי.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button id="install-app" class="ghost hidden">התקן בטלפון</button>
+            <button id="seed-demo">טען נתוני הדגמה</button>
+            <button id="clear-data" class="ghost">אפס נתונים</button>
+          </div>
+        </header>
+
+        <section id="dashboard-view" class="view is-active" aria-labelledby="dashboard-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h3 id="dashboard-title">תמונת מצב ארגונית</h3>
+            </div>
+          </div>
+          <div id="stats-grid" class="stats-grid"></div>
+          <div class="panel-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h4>ליקויים פתוחים לפי חומרה</h4>
+              </div>
+              <div id="severity-breakdown" class="stack-list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h4>ביקורות אחרונות</h4>
+              </div>
+              <div id="recent-inspections" class="list-table"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="inspection-view" class="view" aria-labelledby="inspection-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Inspection</p>
+              <h3 id="inspection-title">פתיחת סבב ביקורת</h3>
+            </div>
+          </div>
+
+          <div class="panel">
+            <form id="inspection-form" class="form-grid">
+              <label>
+                <span>אשכול</span>
+                <select name="cluster" required></select>
+              </label>
+              <label>
+                <span>סוג אתר/שירות</span>
+                <select name="siteType" required></select>
+              </label>
+              <label>
+                <span>שם אתר</span>
+                <input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required />
+              </label>
+              <label>
+                <span>כתובת</span>
+                <input type="text" name="address" placeholder="רחוב, עיר" required />
+              </label>
+              <label>
+                <span>מבצע הסקר</span>
+                <input type="text" name="inspector" placeholder="שם מלא" required />
+              </label>
+              <label>
+                <span>מיקום GPS</span>
+                <input type="text" name="gps" placeholder="31.778, 35.235" />
+              </label>
+              <label class="full">
+                <span>הערות פתיחה</span>
+                <textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea>
+              </label>
+              <div class="full form-actions">
+                <button type="submit">צור ביקורת</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="inspection-workspace" class="inspection-workspace hidden">
+            <section class="panel">
+              <div class="panel-head">
+                <div>
+                  <h4 id="active-inspection-name">ביקורת פעילה</h4>
+                  <p id="active-inspection-meta" class="muted small"></p>
+                </div>
+                <button id="save-draft" class="ghost">שמור טיוטה</button>
+              </div>
+              <div id="checklist-container" class="checklist"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="issues-view" class="view" aria-labelledby="issues-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Issues</p>
+              <h3 id="issues-title">ניהול ליקויים</h3>
+            </div>
+            <div class="toolbar">
+              <select id="status-filter">
+                <option value="all">כל הסטטוסים</option>
+                <option value="open">פתוח</option>
+                <option value="assigned">הוקצה לטיפול</option>
+                <option value="in_progress">בתיקון</option>
+                <option value="pending_verification">ממתין לאימות</option>
+                <option value="closed">סגור</option>
+              </select>
+              <button id="export-json" class="ghost">ייצוא JSON</button>
+              <button id="export-csv" class="ghost">ייצוא CSV</button>
+            </div>
+          </div>
+          <div id="issues-list" class="issue-grid"></div>
+        </section>
+
+        <section id="settings-view" class="view" aria-labelledby="settings-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Settings</p>
+              <h3 id="settings-title">BYOK, AI ופרטיות</h3>
+            </div>
+          </div>
+          <div class="panel-grid">
+            <section class="panel">
+              <form id="settings-form" class="form-grid">
+                <label class="full">
+                  <span>OpenAI API Key</span>
+                  <input type="password" name="apiKey" placeholder="sk-..." autocomplete="off" />
+                  <small class="muted">נשמר רק עד לסגירת לשונית הדפדפן. נדרש רק לניתוח צילום יזום.</small>
+                </label>
+                <label>
+                  <span>מודל Vision</span>
+                  <input type="text" name="visionModel" value="gpt-4.1-mini" />
+                </label>
+                <label>
+                  <span>מודל Reasoning</span>
+                  <input type="text" name="reasoningModel" value="o4-mini" />
+                </label>
+                <label>
+                  <span>סף ודאות</span>
+                  <input type="number" name="confidenceThreshold" min="0" max="1" step="0.05" value="0.8" />
+                </label>
+                <label class="full">
+                  <span>מדיניות פרטיות מקומית</span>
+                  <textarea name="privacyNotes" rows="4">המפתח נשמר לזמן הסשן בלבד. צילום נשלח ל-OpenAI רק לאחר לחיצה מפורשת על "נתח צילום עם AI".</textarea>
+                </label>
+                <div class="full form-actions">
+                  <button type="submit">שמור הגדרות</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <h4>חוזה AI מקומי</h4>
+              <ul class="plain-list">
+                <li>פלט AI נשמר רק כ-`PENDING_AI` עד לאישור משתמש.</li>
+                <li>אין קביעת FAIL אוטומטית על סמך הערכה חזותית בלבד.</li>
+                <li>מקורות נורמטיביים נשמרים עם `sourceRefs` לכל פריט צ׳קליסט.</li>
+                <li>מצבי Offline נשמרים מקומית ומסומנים בלוח המערכת.</li>
+              </ul>
+              <div id="settings-summary" class="note-box"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="checklist-item-template">
+      <article class="check-item">
+        <div class="check-item-head">
+          <div>
+            <h5 class="item-title"></h5>
+            <p class="item-meta muted small"></p>
+          </div>
+          <span class="badge">טרם נבדק</span>
+        </div>
+        <div class="status-row">
+          <label><input type="radio" value="pass" /> תקין</label>
+          <label><input type="radio" value="fail" /> ליקוי</label>
+          <label><input type="radio" value="na" /> לא רלוונטי</label>
+        </div>
+        <div class="issue-fields hidden">
+          <label>
+            <span>חומרה</span>
+            <select class="severity-select">
+              <option value="low">קל</option>
+              <option value="medium">בינוני</option>
+              <option value="high">חמור</option>
+              <option value="blocking">מונע גישה</option>
+            </select>
+          </label>
+          <label>
+            <span>תיאור ליקוי</span>
+            <textarea class="issue-description" rows="3" placeholder="מה נמצא בשטח?"></textarea>
+          </label>
+          <label>
+            <span>צילום / קובץ</span>
+            <input type="file" class="issue-photo" accept="image/*" />
+          </label>
+          <div class="full ai-actions">
+            <button type="button" class="ghost analyze-photo">נתח צילום עם AI</button>
+            <p class="ai-result muted small" aria-live="polite"></p>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
