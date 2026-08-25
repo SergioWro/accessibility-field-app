@@ -90,10 +90,14 @@ button.ghost {
 }
 
 .nav-link {
+  display: block;
   text-align: right;
   background: transparent;
   color: var(--text);
   border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 0.8rem 1.1rem;
+  text-decoration: none;
 }
 
 .nav-link.is-active {
@@ -145,6 +149,15 @@ button.ghost {
 }
 
 .view.is-active {
+  display: block;
+}
+
+/* Hash routing keeps navigation available even if JavaScript loads late on mobile. */
+body:has(.view:target) .view.is-active {
+  display: none;
+}
+
+.view:target {
   display: block;
 }
 

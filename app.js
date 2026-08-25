@@ -174,6 +174,7 @@ function init() {
   bindEvents();
   registerServiceWorker();
   render();
+  switchView(viewFromHash());
 }
 
 function loadState() {
@@ -200,6 +201,8 @@ function bindEvents() {
   els.navLinks.forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.view));
   });
+
+  window.addEventListener("hashchange", () => switchView(viewFromHash()));
 
   els.inspectionForm.addEventListener("submit", handleCreateInspection);
   els.inspectionForm.cluster.addEventListener("change", populateSiteTypes);
@@ -256,8 +259,18 @@ function populateSiteTypes() {
 }
 
 function switchView(viewName) {
-  els.navLinks.forEach((button) => button.classList.toggle("is-active", button.dataset.view === viewName));
-  Object.entries(els.views).forEach(([name, view]) => view.classList.toggle("is-active", name === viewName));
+  const validView = Object.hasOwn(els.views, viewName) ? viewName : "dashboard";
+  els.navLinks.forEach((button) => {
+    const isActive = button.dataset.view === validView;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-current", isActive ? "page" : "false");
+  });
+  Object.entries(els.views).forEach(([name, view]) => view.classList.toggle("is-active", name === validView));
+}
+
+function viewFromHash() {
+  const name = window.location.hash.replace("#", "");
+  return Object.hasOwn(els.views, name) ? name : "dashboard";
 }
 
 function handleCreateInspection(event) {
