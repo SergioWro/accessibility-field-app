@@ -348,6 +348,26 @@ body:has(.view:target) .view.is-active {
   color: var(--primary);
 }
 
+.ai-review-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.65rem;
+  padding: 0.8rem;
+  border-radius: 14px;
+  background: var(--surface-strong);
+}
+
+.ai-result {
+  white-space: pre-line;
+}
+
+.ai-review-controls .reject-ai {
+  color: var(--danger);
+  border-color: rgba(163, 49, 40, 0.35);
+}
+
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;

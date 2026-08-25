@@ -6,15 +6,33 @@ const catalog = {
     { id: "built", name: 'מתו"ס ותשתיות' },
     { id: "service", name: "נגישות השירות" },
     { id: "digital", name: "דיגיטל וטכנולוגיה" },
+    { id: "special", name: "נגישות ייעודית" },
   ],
   siteTypes: [
     { id: "building", cluster: "built", name: "מבנה ציבורי" },
     { id: "open_space", cluster: "built", name: "שטח ציבורי פתוח" },
+    { id: "sidewalk", cluster: "built", name: "מדרכה / דרך נגישה" },
     { id: "bus_stop", cluster: "built", name: "תחנת אוטובוס" },
+    { id: "pedestrian_bridge", cluster: "built", name: "גשר הולכי רגל" },
+    { id: "beach", cluster: "built", name: "חוף רחצה" },
+    { id: "cemetery", cluster: "built", name: "בית עלמין" },
+    { id: "sports_facility", cluster: "built", name: "מתקן ספורט" },
     { id: "service_center", cluster: "service", name: "מרכז שירות / סניף" },
+    { id: "organizational_service", cluster: "service", name: "שירות ארגוני / נהלים" },
+    { id: "telephone_center", cluster: "service", name: "מוקד טלפוני / נתב שיחות" },
+    { id: "public_information", cluster: "service", name: "מידע לציבור ופרסום הסדרי נגישות" },
     { id: "event", cluster: "service", name: "אירוע / כנס" },
+    { id: "food_service", cluster: "service", name: "מסעדה / שירותי הסעדה" },
     { id: "website", cluster: "digital", name: "אתר אינטרנט" },
+    { id: "mobile_app", cluster: "digital", name: "אפליקציה סלולרית" },
     { id: "kiosk", cluster: "digital", name: "קיוסק / מכונת שירות עצמי" },
+    { id: "assistive_technology", cluster: "digital", name: "עזרים וטכנולוגיות נגישות" },
+    { id: "accommodation", cluster: "special", name: "יחידת אכסון / מלון" },
+    { id: "education", cluster: "special", name: "מוסד חינוך" },
+    { id: "health", cluster: "special", name: "מוסד בריאות" },
+    { id: "higher_education", cluster: "special", name: "השכלה גבוהה" },
+    { id: "park", cluster: "special", name: "פארק" },
+    { id: "emergency", cluster: "special", name: "שעת חירום / מרחב מוגן" },
   ],
   checklistTemplates: {
     building: [
@@ -117,6 +135,36 @@ const catalog = {
     ],
   },
 };
+
+catalog.siteTypes.forEach((siteType) => {
+  if (!catalog.checklistTemplates[siteType.id]) {
+    catalog.checklistTemplates[siteType.id] = createBaselineChecklist(siteType);
+  }
+});
+
+function createBaselineChecklist(siteType) {
+  const prefix = siteType.id.toUpperCase().replaceAll("_", "-");
+  return [
+    {
+      id: `CHK-${prefix}-1`,
+      title: `רצף נגישות עבור ${siteType.name}`,
+      threshold: "בדיקה לפי תחולה, מסלול גישה והשימוש באתר",
+      sourceRefs: ["FR-2.1", "FR-4.1", "ת\"י 1918 לפי תחולה"],
+    },
+    {
+      id: `CHK-${prefix}-2`,
+      title: "מידע, שילוט ושירות נגישים",
+      threshold: "מידע ברור וחלופה נגישה כאשר נדרשת",
+      sourceRefs: ["FR-4.2", "FR-11.4", "FR-11.6"],
+    },
+    {
+      id: `CHK-${prefix}-3`,
+      title: "בדיקת תחולה מקצועית",
+      threshold: "אימות מקור, סוג שימוש, מועד וחריגים לפני הכרעה",
+      sourceRefs: ["FR-13.4", "NFR-19"],
+    },
+  ];
+}
 
 const defaultState = {
   settings: {
@@ -391,6 +439,7 @@ function renderActiveInspection() {
     const photoInput = fragment.querySelector(".issue-photo");
     const analyzeButton = fragment.querySelector(".analyze-photo");
     const aiResult = fragment.querySelector(".ai-result");
+    const aiReviewControls = fragment.querySelector(".ai-review-controls");
     const radios = [...fragment.querySelectorAll('input[type="radio"]')];
 
     title.textContent = item.title;
@@ -470,8 +519,7 @@ function renderActiveInspection() {
           }
           saveState("photo_analyzed_with_ai");
         }
-        const confidence = Math.round(assessment.confidence * 100);
-        aiResult.textContent = `הצעת AI: ${assessment.recommendation} (${confidence}% ודאות). נדרשת בדיקה ואישור אנושי.`;
+        renderAiAssessment(issue, aiResult, aiReviewControls);
         renderIssues();
         renderSystemStatus("ניתוח AI התקבל וממתין לאישור אנושי.");
       } catch (error) {
@@ -488,14 +536,62 @@ function renderActiveInspection() {
         descriptionInput.value = issue.description;
         severitySelect.value = issue.severity;
         if (issue.aiAssessment) {
-          const confidence = Math.round(issue.aiAssessment.confidence * 100);
-          aiResult.textContent = `הצעת AI קודמת: ${issue.aiAssessment.recommendation} (${confidence}% ודאות).`;
+          renderAiAssessment(issue, aiResult, aiReviewControls);
         }
       }
     }
 
     els.checklistContainer.appendChild(card);
   });
+}
+
+function renderAiAssessment(issue, resultElement, controlsElement) {
+  if (!issue?.aiAssessment) {
+    resultElement.textContent = "";
+    controlsElement.classList.add("hidden");
+    controlsElement.replaceChildren();
+    return;
+  }
+
+  const assessment = issue.aiAssessment;
+  const confidence = Math.round(Number(assessment.confidence || 0) * 100);
+  resultElement.textContent = [
+    `תצפית AI: ${assessment.observation || "לא נמסרה תצפית."}`,
+    `הערכת AI: ${recommendationLabel(assessment.recommendation)}`,
+    `פעולה מוצעת: ${assessment.recommendedAction || "נדרשת בדיקה מקצועית בשטח."}`,
+    `מגבלות: ${assessment.limitations || "הערכה מצילום בלבד."}`,
+    `ודאות: ${confidence}%`,
+  ].join("\n");
+
+  controlsElement.classList.remove("hidden");
+  controlsElement.replaceChildren();
+  const status = document.createElement("strong");
+  if (issue.aiStatus === "PENDING_HUMAN_REVIEW") {
+    status.textContent = "הכרעה אנושית נדרשת עבור הצעת ה-AI:";
+    const approveButton = document.createElement("button");
+    approveButton.type = "button";
+    approveButton.textContent = "אשר הצעת AI";
+    approveButton.addEventListener("click", () => reviewAiAssessment(issue.id, "approved"));
+    const rejectButton = document.createElement("button");
+    rejectButton.type = "button";
+    rejectButton.className = "ghost reject-ai";
+    rejectButton.textContent = "דחה הצעת AI";
+    rejectButton.addEventListener("click", () => reviewAiAssessment(issue.id, "rejected"));
+    controlsElement.append(status, approveButton, rejectButton);
+  } else {
+    status.textContent = issue.aiStatus === "HUMAN_APPROVED" ? "הצעת ה-AI אושרה אנושית." : "הצעת ה-AI נדחתה אנושית.";
+    controlsElement.append(status);
+  }
+}
+
+function reviewAiAssessment(issueId, decision) {
+  const issue = state.issues.find((entry) => entry.id === issueId);
+  if (!issue) return;
+  issue.aiStatus = decision === "approved" ? "HUMAN_APPROVED" : "HUMAN_REJECTED";
+  issue.aiReviewedAt = new Date().toISOString();
+  saveState(`ai_assessment_${decision}`);
+  render();
+  renderSystemStatus(decision === "approved" ? "הצעת ה-AI אושרה אנושית." : "הצעת ה-AI נדחתה אנושית.");
 }
 
 function createOrUpdateIssue(inspection, checklistItem, description, severity, photoFile) {
@@ -535,18 +631,19 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
     `פריט: ${checklistItem.title}.`,
     `סף נדרש: ${checklistItem.threshold}.`,
     `סוג אתר: ${siteTypeLabel(inspection.siteType)}.`,
-    "אל תקבע תאימות או כשל סופיים. החזר תצפית חזותית, המלצה לבדיקת אדם, ודאות 0 עד 1.",
+    "החזר בעברית תצפית קונקרטית על מה שנראה בצילום, כולל האלמנטים שנצפו והקשרם לפריט. אם אין די ראיות, הסבר בדיוק מה חסר. אל תקבע תאימות או כשל סופיים.",
   ].join(" ");
   const schema = {
     type: "object",
     additionalProperties: false,
     properties: {
       observation: { type: "string" },
-      recommendation: { type: "string", enum: ["review_required", "likely_issue", "insufficient_evidence"] },
+      recommendation: { type: "string", enum: ["possible_accessibility_issue", "no_clear_accessibility_issue", "insufficient_evidence"] },
+      recommendedAction: { type: "string" },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       limitations: { type: "string" },
     },
-    required: ["observation", "recommendation", "confidence", "limitations"],
+    required: ["observation", "recommendation", "recommendedAction", "confidence", "limitations"],
   };
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -768,6 +865,17 @@ function severityLabel(severity) {
     blocking: "מונע גישה",
   };
   return labels[severity] || severity;
+}
+
+function recommendationLabel(recommendation) {
+  const labels = {
+    possible_accessibility_issue: "ייתכן ליקוי נגישות",
+    no_clear_accessibility_issue: "לא זוהה ליקוי ברור בצילום",
+    insufficient_evidence: "אין מספיק ראיות בצילום",
+    review_required: "נדרשת בדיקה מקצועית",
+    likely_issue: "ייתכן ליקוי נגישות",
+  };
+  return labels[recommendation] || recommendation;
 }
 
 function csvEscape(value) {
