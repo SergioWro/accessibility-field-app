@@ -724,7 +724,7 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
     `פריט: ${checklistItem.title}.`,
     `סף נדרש: ${checklistItem.threshold}.`,
     `סוג אתר: ${siteTypeLabel(inspection.siteType)}.`,
-    `בסיסים נורמטיביים אפשריים לבדיקה: ${legalBases.join(" | ")}.`,
+    `מקורות אפשריים לבדיקה לפי אינדקס: ${legalBases.map((basis, index) => `${index}=${basis}`).join(" | ")}.`,
     "החזר בעברית תצפית קונקרטית על מה שנראה בצילום, כולל האלמנטים שנצפו והקשרם לפריט. אם אין די ראיות, הסבר בדיוק מה חסר. אל תקבע תאימות או כשל סופיים.",
   ].join(" ");
   const schema = {
@@ -734,11 +734,11 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
       observation: { type: "string" },
       recommendation: { type: "string", enum: ["possible_accessibility_issue", "no_clear_accessibility_issue", "insufficient_evidence"] },
       recommendedAction: { type: "string" },
-      legalBasis: { type: "string", enum: legalBases },
+      legalBasisIndex: { type: "integer", minimum: 0, maximum: legalBases.length - 1 },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       limitations: { type: "string" },
     },
-    required: ["observation", "recommendation", "recommendedAction", "legalBasis", "confidence", "limitations"],
+    required: ["observation", "recommendation", "recommendedAction", "legalBasisIndex", "confidence", "limitations"],
   };
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -758,6 +758,8 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
   if (!output) throw new Error("לא התקבלה תשובת ניתוח תקינה.");
   const assessment = JSON.parse(output);
   assessment.confidence = Number(assessment.confidence);
+  assessment.legalBasis = legalBases[Number(assessment.legalBasisIndex)] || legalBases[0];
+  delete assessment.legalBasisIndex;
   return assessment;
 }
 
