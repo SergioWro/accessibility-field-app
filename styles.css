@@ -313,6 +313,52 @@ body:has(.view:target) .view.is-active {
   align-items: center;
 }
 
+.form-section-title {
+  padding: 0.65rem 0.8rem;
+  margin-top: 0.25rem;
+  border-right: 4px solid var(--accent);
+  background: #fff4e9;
+  color: #6e3a13;
+  font-weight: 800;
+}
+
+.compact-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-strong);
+}
+
+.compact-fieldset legend {
+  padding: 0 0.35rem;
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.compact-fieldset label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.issue-facts {
+  padding: 0.8rem 0.9rem;
+  border-right: 3px solid var(--accent);
+  background: #fffaf5;
+  line-height: 1.7;
+}
+
+.evidence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .inspection-workspace.hidden,
 .hidden {
   display: none;

@@ -92,6 +92,19 @@
                 <span>מסלול תחולה</span>
                 <select name="applicabilityProfile" required></select>
               </label>
+              <div class="full form-section-title">שער תחולה ומסמכי בסיס</div>
+              <label>
+                <span>מצב המבנה</span>
+                <select name="buildingStatus"><option value="existing">בניין קיים</option><option value="new">בניין חדש</option><option value="major_change">שינוי מהותי בבניין קיים</option></select>
+              </label>
+              <label><span>שנת הקמה</span><input type="number" name="constructionYear" min="1800" max="2100" /></label>
+              <label><span>שנת היתר</span><input type="number" name="permitYear" min="1800" max="2100" /></label>
+              <label><span>שנת שינוי ייעוד / שיפוץ</span><input type="number" name="majorChangeYear" min="1800" max="2100" /></label>
+              <label><span>ייעוד בפועל</span><input type="text" name="actualUse" placeholder="למשל: מרכז קבלת קהל" /></label>
+              <label><span>ייעוד בהיתר</span><input type="text" name="permittedUse" placeholder="אם ידוע" /></label>
+              <label><span>שטח עיקרי במ״ר</span><input type="number" name="mainArea" min="0" /></label>
+              <label><span>מספר מפלסים</span><input type="number" name="levels" min="0" /></label>
+              <label><span>קיבולת קהל</span><input type="number" name="publicCapacity" min="0" /></label>
               <label>
                 <span>שם אתר</span>
                 <input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required />
@@ -104,6 +117,12 @@
                 <span>מבצע הסקר</span>
                 <input type="text" name="inspector" placeholder="שם מלא" required />
               </label>
+              <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredential" placeholder="אופציונלי" /></label>
+              <label><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
+              <label><span>החייב בנגישות</span><input type="text" name="liableParty" placeholder="שם בעלים / שוכר / רשות" /></label>
+              <label><span>תפקיד החייב</span><input type="text" name="liableRole" placeholder="בעלים, מנהל נכס וכו׳" /></label>
+              <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationId" /></label>
+              <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficer" /></label>
               <label>
                 <span>מיקום GPS</span>
                 <div class="field-with-action">
@@ -115,6 +134,9 @@
                 <span>הערות פתיחה</span>
                 <textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea>
               </label>
+              <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
+              <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
+              <label class="full"><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
               <div class="full form-actions">
                 <button type="submit">צור ביקורת</button>
               </div>
@@ -309,14 +331,30 @@
             </select>
           </label>
           <label>
-            <span>תיאור ליקוי</span>
-            <textarea class="issue-description" rows="3" placeholder="מה נמצא בשטח?"></textarea>
+            <span>מה נראה / מה נמדד</span>
+            <textarea class="issue-description" rows="3" placeholder="תצפית עובדתית בלבד"></textarea>
           </label>
+          <label><span>מזהה אלמנט קבוע</span><input class="element-id" type="text" placeholder="למשל: כניסה ראשית / WC קומה 2" /></label>
+          <label><span>ערך מדוד</span><input class="measured-value" type="text" placeholder="למשל: 76" /></label>
+          <label><span>יחידת מדידה</span><input class="measurement-unit" type="text" placeholder="ס״מ, %, ניוטון, לוקס" /></label>
+          <label><span>כלי מדידה</span><select class="measurement-tool"><option value="">לא נמדד</option><option>סרט מדידה</option><option>מד-שיפוע</option><option>מד-כוח דלת</option><option>לוקסמטר</option><option>כלי אוטומטי</option><option>אחר</option></select></label>
+          <label><span>נקודת המדידה</span><input class="measurement-point" type="text" placeholder="מפלס, ציר, חדר או אלמנט" /></label>
+          <label><span>הדרישה חלה?</span><select class="applicability-decision"><option value="applies">חלה לפי הנתונים הקיימים</option><option value="recommendation">המלצה / תקן מיטבי</option><option value="unknown">לא ניתן לקבוע – חסר מידע</option></select></label>
+          <label><span>המלצה לפעולה</span><textarea class="issue-recommendation" rows="2" placeholder="מה הפעולה הקונקרטית הנדרשת?"></textarea></label>
+          <label><span>מידע חסר / נדרש מומחה</span><textarea class="issue-unknown" rows="2" placeholder="היתר, תקן, מדידה או מהנדס נדרש"></textarea></label>
+          <fieldset class="full compact-fieldset"><legend>השפעה ואופן תיקון</legend><label><input class="affected-group" type="checkbox" value="ניידות" /> ניידות</label><label><input class="affected-group" type="checkbox" value="ראייה" /> ראייה</label><label><input class="affected-group" type="checkbox" value="שמיעה" /> שמיעה</label><label><input class="affected-group" type="checkbox" value="קוגניטיבי / תקשורת" /> קוגניטיבי / תקשורת</label><label><input class="issue-temporary" type="checkbox" /> ליקוי זמני</label><label><input class="alternative-available" type="checkbox" /> קיימת התאמה חלופית כעת</label><label><input class="life-safety" type="checkbox" /> קשור לחיי אדם / פינוי / אש</label></fieldset>
+          <label><span>סוג פעולה</span><select class="remediation-type"><option value="engineering">תיקון הנדסי</option><option value="procedure">שינוי נוהל / שירות</option><option value="maintenance">אחזקה</option></select></label>
+          <label><span>אחראי לתיקון</span><input class="issue-liable-party" type="text" placeholder="בעלים / שוכר / רשות / קבלן" /></label>
+          <label><span>עלות גסה</span><input class="estimated-cost" type="text" placeholder="לא ידוע / טווח משוער" /></label>
+          <label><span>נדרש היתר?</span><select class="permit-needed"><option value="unknown">לא ידוע</option><option value="no">לא</option><option value="yes">כן</option></select></label>
           <label>
-            <span>צילום / קובץ</span>
+            <span>ראיה 1: הקשר כללי</span>
             <input type="file" class="issue-photo" accept="image/*" capture="environment" />
-            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר לצילום ישיר.</small>
+            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר.</small>
           </label>
+          <label><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" capture="environment" /></label>
+          <label><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" capture="environment" /></label>
+          <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
           <div class="full ai-actions">
             <button type="button" class="ghost analyze-photo">נתח צילום עם AI</button>
             <p class="ai-result muted small" aria-live="polite"></p>

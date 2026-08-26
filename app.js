@@ -5,7 +5,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.5.0";
 
 const catalog = {
   clusters: [
@@ -359,6 +359,49 @@ function createBaselineChecklist(siteType) {
   ];
 }
 
+function surveyItem(id, title, threshold, sourceRefs, measurementUnit = "") {
+  return { id, title, threshold, measurementTargets: threshold, sourceRefs, measurementUnit };
+}
+
+catalog.checklistTemplates.building = [
+  surveyItem("B-PARKING", "חניה נגישה ומסלול מהחניה", "בדוק מספר מקומות נדרש מול קיים, מידות, שילוט ומסלול נגיש רציף לכניסה.", ['ת"י 1918 חלק 2', "תקנות מקום ציבורי בבניין קיים"], "ס״מ"),
+  surveyItem("B-ROUTE-WIDTH", "דרך נגישה: רוחב נטו ומכשולים", "רוחב חופשי 130 ס״מ לפחות במסלול שבו ת״י 1918 חלק 2 חל; היצרות מותנית מחייבת אימות תחולה.", ['ת"י 1918 חלק 2'], "ס״מ"),
+  surveyItem("B-ROUTE-SLOPE", "דרך נגישה: שיפוע אורכי ורוחבי", "שיפוע אורכי עד 5% ושיפוע רוחבי עד 2%, בכפוף לתחולה ולחריגים בתקנים.", ['ת"י 1918 חלק 2'], "%"),
+  surveyItem("B-ENTRY", "כניסה, סף ודלת ראשית", "רצף נגיש ללא מדרגה לא מטופלת; מדוד מעבר חופשי, סף, כוח פתיחה ומרחב תמרון לפי התחולה.", ['ת"י 1918 חלק 3.1', "תקנות מקום ציבורי בבניין קיים"], "ס״מ"),
+  surveyItem("B-DOORS", "דלתות במסלול נגיש", "בדוק רוחב מעבר חופשי, מרחב תמרון משני הצדדים, סף וכוח פתיחה לפי המסלול החל.", ['ת"י 1918 חלק 3.1'], "ס״מ"),
+  surveyItem("B-RAMP", "כבש, משטחי מנוחה ומעקות", "מדוד שיפוע, רוחב, אורך מקטע ומשטחי מנוחה; בדוק הגנה בקצה ומעקות בשני הצדדים לפי התחולה.", ['ת"י 1918 חלק 2'], "%"),
+  surveyItem("B-STAIRS", "מדרגות, סימון ומעקות", "בדוק רום-שלח, מעקות משני הצדדים, סימון אף מדרגה, ניגוד ואזהרה מישושית כאשר נדרשת.", ['ת"י 1918 חלקים 2 ו-6'], "ס״מ"),
+  surveyItem("B-WC", "תא בית שימוש נגיש", "בדוק מידות תא, סיבוב, מאחזים, כיור, ברז, אסלה, לחצן מצוקה, דלת ומשטח העברה לפי התחולה.", ['ת"י 1918 חלק 3.1'], "ס״מ"),
+  surveyItem("B-ELEVATOR", "מעלית או מעלון", "בדוק מידות תא, גובה לחצנים, כתב מובלט או ברייל, כריזה, זמן דלת ומפלס מדויק לפי התחולה.", ['ת"י 1918 חלק 3.1'], "ס״מ"),
+  surveyItem("B-COUNTER", "דלפק ועמדת שירות", "בדוק גובה נגיש, חלל ברכיים, רצף הגעה ולולאת השראה במקום שבו היא נדרשת.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"], "ס״מ"),
+  surveyItem("B-SIGNAGE", "שילוט, הכוונה וניגוד", "בדוק גודל אות, ניגוד, גובה תלייה, כיוון ומישוש או ברייל במקומות שבהם נדרש.", ['ת"י 1918 חלק 6'], "מ״מ"),
+  surveyItem("B-SURFACES", "משטחים, חריצים וסבכות", "בדוק החלקה, חריצים, סבכות ורציפות למעבר עגלות ללא מכשול.", ['ת"י 1918 חלק 2']),
+  surveyItem("B-SEATING", "מקומות ישיבה שמורים ותאי צפייה", "בדוק מקומות נגישים, רצף הגעה ונראות בהתאם לשימוש במקום.", ['ת"י 1918 לפי תחולה']),
+  surveyItem("B-EMERGENCY", "יציאה, חירום ומרחב מוגן", "בדוק נגישות נתיב פינוי, מידע חירום ואמצעים נדרשים לפי תחולה; סמן סיכון חיי אדם בנפרד.", ["תקנות נגישות השירות", "הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.service_center = [
+  surveyItem("S-OFFICER", "מינוי ופרסום ממונה נגישות", "קיימים ממונה נגישות ופרטי קשר מעודכנים בפרסומי השירות לפי התחולה.", ["תקנות נגישות השירות"]),
+  surveyItem("S-ARRANGEMENTS", "הסדרי נגישות מפורסמים מול ביצוע", "ההסדרים מפורסמים, ברורים ומשקפים את השירות הזמין בפועל.", ["תקנות נגישות השירות"]),
+  surveyItem("S-TRAINING", "הדרכת עובדים ותיעוד", "קיימים תאריך, תפקידים, תוכן הדרכה ותיעוד מעקב; לא סימון כללי בלבד.", ["תקנות נגישות השירות"]),
+  surveyItem("S-ALTERNATIVE", "שירות חלופי וסיוע אנושי", "ניתן שירות חלופי נגיש, סיוע לפי צורך וכניסת כלב נחייה ללא חסם.", ["תקנות נגישות השירות"]),
+  surveyItem("S-DOCUMENTS", "טפסים, קבלות וחוזים נגישים", "קיימת חלופה נגישה למסמכים ולמידע הניתן ללקוח.", ["תקנות נגישות השירות", 'ת"י 5568 חלק 2']),
+  surveyItem("S-PHONE", "מוקד, נתב וחלופה לא טלפונית", "קיימת חלופה נגישה לפניות ושירות כאשר המענה הטלפוני אינו מתאים.", ["תקנות נגישות השירות"]),
+  surveyItem("S-HEARING", "לולאת השראה ומידע חזותי", "בדוק אמצעי עזר לשמיעה, סימון והפעלה במקומות שבהם הם נדרשים.", ["תקנות נגישות השירות"]),
+  surveyItem("S-COGNITIVE", "שפה פשוטה, מסלול ברור וליווי", "המידע והשירות ברורים, עקביים וכוללים סיוע לפי צורך.", ["תקנות נגישות השירות"]),
+  surveyItem("S-EVENT", "אירוע נגיש", "בדוק הרשמה, ישיבה, במה, שירותים, שילוט זמני, פינוי ושירות חלופי.", ["תקנות נגישות השירות"]),
+];
+
+catalog.checklistTemplates.website = [
+  surveyItem("D-SCOPE", "היקף דיגיטלי: URL, גרסה ותאריך", "תעד כתובת, גרסת שירות, תאריך דגימה והעמודים שנבדקו.", ["תקנות נגישות השירות, תקנות 35–35ו"]),
+  surveyItem("D-KEYBOARD", "מקלדת, מיקוד ודילוג לתוכן", "כל הפעולות העיקריות זמינות במקלדת, עם מיקוד נראה וקישור דילוג.", ['ת"י 5568 חלק 1']),
+  surveyItem("D-SCREENREADER", "בדיקה ידנית וקורא מסך", "תעד כלי אוטומטי, בדיקה ידנית וקורא מסך או טכנולוגיה מסייעת ששימשו.", ['ת"י 5568 חלק 1']),
+  surveyItem("D-FORMS", "טפסים, שגיאות והוראות", "לשדות יש תוויות, הוראות, הודעות שגיאה נגישות ורצף הגיוני.", ['ת"י 5568 חלק 1']),
+  surveyItem("D-CONTRAST", "ניגוד, שינוי גודל ותצוגה", "בדוק ניגוד, שינוי גודל טקסט, צפיפות ותפעול במסך נייד.", ['ת"י 5568 חלק 1']),
+  surveyItem("D-DOCUMENTS", "מסמכים ותכנים חלופיים", "מסמכים נגישים או קיימת חלופה נגישה ומפורסמת.", ['ת"י 5568 חלק 2']),
+  surveyItem("D-STATEMENT", "הצהרת נגישות וערוץ פנייה", "הצהרה מעודכנת כוללת התאמות, חריגים, פרטי רכז ודרך פנייה.", ["תקנות נגישות השירות, תקנות 35–35ו"]),
+];
+
 const defaultState = {
   settings: {
     apiKeyMasked: "",
@@ -672,6 +715,25 @@ function handleCreateInspection(event) {
     inspector: formData.get("inspector"),
     gps: formData.get("gps"),
     notes: formData.get("notes"),
+    buildingStatus: formData.get("buildingStatus"),
+    constructionYear: formData.get("constructionYear"),
+    permitYear: formData.get("permitYear"),
+    majorChangeYear: formData.get("majorChangeYear"),
+    actualUse: formData.get("actualUse"),
+    permittedUse: formData.get("permittedUse"),
+    mainArea: formData.get("mainArea"),
+    levels: formData.get("levels"),
+    publicCapacity: formData.get("publicCapacity"),
+    inspectorCredential: formData.get("inspectorCredential"),
+    surveyType: formData.get("surveyType"),
+    liableParty: formData.get("liableParty"),
+    liableRole: formData.get("liableRole"),
+    organizationId: formData.get("organizationId"),
+    accessibilityOfficer: formData.get("accessibilityOfficer"),
+    requiredFacilities: formData.getAll("requiredFacilities"),
+    recordFlags: formData.getAll("recordFlags"),
+    exemptionDetails: formData.get("exemptionDetails"),
+    scopeLimitations: formData.get("scopeLimitations"),
     createdAt: new Date().toISOString(),
     status: "draft",
     checklist: catalog.checklistTemplates[siteType].map((item) => ({
@@ -783,6 +845,9 @@ function renderActiveInspection() {
     const aiReviewControls = fragment.querySelector(".ai-review-controls");
     const regulatorySource = fragment.querySelector(".regulatory-source");
     const regulatoryNeed = fragment.querySelector(".regulatory-need");
+    const evidenceInputs = [...fragment.querySelectorAll(".evidence-photo")];
+    const evidenceSummary = fragment.querySelector(".evidence-summary");
+    const captureIssueGps = fragment.querySelector(".capture-issue-gps");
     const radios = [...fragment.querySelectorAll('input[type="radio"]')];
 
     title.textContent = item.title;
@@ -804,7 +869,7 @@ function renderActiveInspection() {
           issueFields.classList.remove("hidden");
           badge.textContent = "ליקוי";
           badge.classList.add("fail");
-          createOrUpdateIssue(inspection, item, descriptionInput.value, severitySelect.value, photoInput.files[0]);
+          createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
         } else {
           issueFields.classList.add("hidden");
           badge.textContent = statusText(radio.value);
@@ -819,14 +884,20 @@ function renderActiveInspection() {
 
     descriptionInput.addEventListener("input", () => {
       if (item.reviewStatus === "fail") {
-        createOrUpdateIssue(inspection, item, descriptionInput.value, severitySelect.value, photoInput.files[0]);
+        createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
         saveState("issue_description_updated");
       }
     });
 
+    issueFields.addEventListener("change", (event) => {
+      if (item.reviewStatus !== "fail" || event.target.type === "file") return;
+      createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
+      saveState("issue_details_updated");
+    });
+
     severitySelect.addEventListener("change", () => {
       if (item.reviewStatus === "fail") {
-        createOrUpdateIssue(inspection, item, descriptionInput.value, severitySelect.value, photoInput.files[0]);
+        createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
         saveState("issue_severity_updated");
         render();
       }
@@ -834,11 +905,32 @@ function renderActiveInspection() {
 
     photoInput.addEventListener("change", async () => {
       if (item.reviewStatus === "fail") {
-        createOrUpdateIssue(inspection, item, descriptionInput.value, severitySelect.value, photoInput.files[0]);
+        createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
         const issue = state.issues.find((entry) => entry.id === item.issueId);
-        if (issue && photoInput.files[0]) await storeIssuePhoto(issue, photoInput.files[0]);
+        if (issue && photoInput.files[0]) await storeIssueEvidence(issue, photoInput.files[0], "הקשר כללי");
         saveState("issue_photo_attached");
       }
+    });
+
+    evidenceInputs.filter((input) => input !== photoInput).forEach((input) => {
+      input.addEventListener("change", async () => {
+        if (item.reviewStatus !== "fail" || !input.files[0]) return;
+        createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value);
+        const issue = state.issues.find((entry) => entry.id === item.issueId);
+        if (issue) {
+          await storeIssueEvidence(issue, input.files[0], input.dataset.evidenceKind || "ראיה נוספת");
+          renderEvidenceSummary(issue, evidenceSummary);
+        }
+      });
+    });
+
+    captureIssueGps.addEventListener("click", () => {
+      const issue = state.issues.find((entry) => entry.id === item.issueId);
+      if (!issue) {
+        renderSystemStatus("יש לשמור את הליקוי לפני שמירת GPS.");
+        return;
+      }
+      captureIssueLocation(issue, captureIssueGps);
     });
 
     analyzeButton.addEventListener("click", async () => {
@@ -881,6 +973,8 @@ function renderActiveInspection() {
       if (issue) {
         descriptionInput.value = issue.description;
         severitySelect.value = issue.severity;
+        hydrateIssueDraft(issueFields, issue);
+        renderEvidenceSummary(issue, evidenceSummary);
         if (issue.aiAssessment) {
           renderAiAssessment(issue, aiResult, aiReviewControls);
         }
@@ -963,13 +1057,18 @@ function renderCorrectionReport() {
     const priority = document.createElement("p");
     priority.textContent = `עדיפות: ${correctionPriority(issue.severity)}`;
     const action = document.createElement("p");
-    action.textContent = `לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
+    action.textContent = `לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
     const target = document.createElement("p");
     target.textContent = `מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`;
     const basis = document.createElement("p");
     basis.className = "muted small";
     basis.textContent = `חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`;
-    entry.append(heading, priority, action, target, basis);
+    const measurement = document.createElement("p");
+    measurement.textContent = `נמדד: ${issue.measuredValue ? `${issue.measuredValue} ${issue.measurementUnit || ""}` : "לא נמדד"} | כלי: ${issue.measurementTool || "לא צוין"} | נקודה: ${issue.measurementPoint || "לא צוינה"}`;
+    const management = document.createElement("p");
+    management.className = "muted small";
+    management.textContent = `אחראי: ${issue.liableParty || inspection.liableParty || "טרם הוגדר"} | פעולה: ${issue.remediationType || "טרם סווגה"} | אימות חוזר: ${issue.reinspectionStatus || "נדרש"}`;
+    entry.append(heading, priority, action, target, basis, measurement, management);
     els.correctionReportContent.append(entry);
   });
 }
@@ -985,7 +1084,10 @@ function saveCorrectionReport() {
     "",
     `תאריך ביקורת: ${formatDate(inspection.createdAt)}`,
     `כתובת: ${inspection.address}`,
-    `מבצע הסקר: ${inspection.inspector}`,
+    `סוג בדיקה: ${surveyTypeLabel(inspection.surveyType)}`,
+    `מבצע הסקר: ${inspection.inspector}${inspection.inspectorCredential ? ` | הכשרה/תעודה: ${inspection.inspectorCredential}` : ""}`,
+    `החייב בנגישות: ${inspection.liableParty || "לא הוגדר"}${inspection.liableRole ? ` | ${inspection.liableRole}` : ""}`,
+    `היקף ומגבלות: ${inspection.scopeLimitations || "לא נמסרו מגבלות"}`,
     "",
     "## פעולות לתיקון",
     "",
@@ -994,12 +1096,15 @@ function saveCorrectionReport() {
   issues.forEach((issue, index) => {
     lines.push(`${index + 1}. ${issue.title}`);
     lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
-    lines.push(`   - לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
+    lines.push(`   - מה נראה / מה נמדד: ${issue.description || "לא תועד"}`);
+    lines.push(`   - לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
     lines.push(`   - מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`);
     lines.push(`   - חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`);
+    lines.push(`   - ערך מדוד: ${issue.measuredValue || "לא נמדד"} ${issue.measurementUnit || ""}; כלי: ${issue.measurementTool || "לא צוין"}; נקודה: ${issue.measurementPoint || "לא צוינה"}`);
+    lines.push(`   - אחראי לתיקון: ${issue.liableParty || inspection.liableParty || "טרם הוגדר"}; פעולה: ${issue.remediationType || "טרם סווגה"}; היתר: ${issue.permitNeeded || "לא ידוע"}`);
     lines.push("");
   });
-  lines.push("הערה: המקור המוצג הוא עזר לבדיקת תחולה ואינו מחליף הכרעה של מורשה/יועץ נגישות מוסמך.");
+  lines.push("הערה: מסמך זה הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.");
   downloadFile(`correction-report-${inspection.siteName.replaceAll(/[^\p{L}\p{N}]+/gu, "-")}.md`, lines.join("\n"), "text/markdown;charset=utf-8");
 }
 
@@ -1019,7 +1124,8 @@ function printCorrectionReport() {
             <article>
               <h2>${index + 1}. ${escapeHtml(issue.title)}</h2>
               <p><strong>עדיפות:</strong> ${escapeHtml(correctionPriority(issue.severity))}</p>
-              <p><strong>לביצוע:</strong> ${escapeHtml(issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
+              <p><strong>מה נראה / מה נמדד:</strong> ${escapeHtml(issue.description || "לא תועד")}</p>
+              <p><strong>לביצוע:</strong> ${escapeHtml(issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
               <p><strong>מה צריך להיות:</strong> ${escapeHtml(measurementTargetsForIssue(inspection, issue))}</p>
               <p><strong>חוק / תקנה / תקן מוצעים לבדיקה:</strong> ${escapeHtml(issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; "))}</p>
             </article>`,
@@ -1032,7 +1138,7 @@ function printCorrectionReport() {
     return;
   }
   printWindow.opener = null;
-  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח לתיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p>${rows}<p class="note">המקורות המוצגים הם בסיס מוצע לבדיקה. יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p></body></html>`);
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח לתיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 250);
@@ -1081,16 +1187,58 @@ function reviewAiAssessment(issueId, decision) {
   renderSystemStatus(decision === "approved" ? "הצעת ה-AI אושרה אנושית." : "הצעת ה-AI נדחתה אנושית.");
 }
 
-function createOrUpdateIssue(inspection, checklistItem, description, severity, photoFile) {
+function collectIssueDraft(container) {
+  return {
+    observation: container.querySelector(".issue-description").value.trim(),
+    elementId: container.querySelector(".element-id").value.trim(),
+    measuredValue: container.querySelector(".measured-value").value.trim(),
+    measurementUnit: container.querySelector(".measurement-unit").value.trim(),
+    measurementTool: container.querySelector(".measurement-tool").value,
+    measurementPoint: container.querySelector(".measurement-point").value.trim(),
+    applicabilityDecision: container.querySelector(".applicability-decision").value,
+    recommendation: container.querySelector(".issue-recommendation").value.trim(),
+    unknownInformation: container.querySelector(".issue-unknown").value.trim(),
+    affectedGroups: [...container.querySelectorAll(".affected-group:checked")].map((input) => input.value),
+    temporary: container.querySelector(".issue-temporary").checked,
+    alternativeAvailable: container.querySelector(".alternative-available").checked,
+    lifeSafety: container.querySelector(".life-safety").checked,
+    remediationType: container.querySelector(".remediation-type").value,
+    liableParty: container.querySelector(".issue-liable-party").value.trim(),
+    estimatedCost: container.querySelector(".estimated-cost").value.trim(),
+    permitNeeded: container.querySelector(".permit-needed").value,
+  };
+}
+
+function hydrateIssueDraft(container, issue) {
+  container.querySelector(".element-id").value = issue.elementId || "";
+  container.querySelector(".measured-value").value = issue.measuredValue || "";
+  container.querySelector(".measurement-unit").value = issue.measurementUnit || "";
+  container.querySelector(".measurement-tool").value = issue.measurementTool || "";
+  container.querySelector(".measurement-point").value = issue.measurementPoint || "";
+  container.querySelector(".applicability-decision").value = issue.applicabilityDecision || "applies";
+  container.querySelector(".issue-recommendation").value = issue.recommendation || "";
+  container.querySelector(".issue-unknown").value = issue.unknownInformation || "";
+  container.querySelectorAll(".affected-group").forEach((input) => { input.checked = (issue.affectedGroups || []).includes(input.value); });
+  container.querySelector(".issue-temporary").checked = Boolean(issue.temporary);
+  container.querySelector(".alternative-available").checked = Boolean(issue.alternativeAvailable);
+  container.querySelector(".life-safety").checked = Boolean(issue.lifeSafety);
+  container.querySelector(".remediation-type").value = issue.remediationType || "engineering";
+  container.querySelector(".issue-liable-party").value = issue.liableParty || "";
+  container.querySelector(".estimated-cost").value = issue.estimatedCost || "";
+  container.querySelector(".permit-needed").value = issue.permitNeeded || "unknown";
+}
+
+function createOrUpdateIssue(inspection, checklistItem, draft, severity, photoFile) {
   let issue = state.issues.find((entry) => entry.id === checklistItem.issueId);
   const photoName = photoFile?.name || issue?.photoName || "PENDING_PHOTO";
+  const normalizedDraft = typeof draft === "string" ? { observation: draft } : draft;
   if (!issue) {
     issue = {
       id: crypto.randomUUID(),
       inspectionId: inspection.id,
       checklistId: checklistItem.id,
       title: checklistItem.title,
-      description: description || "ללא תיאור",
+      description: normalizedDraft.observation || "ללא תיאור",
       severity,
       lifecycle: "open",
       siteName: inspection.siteName,
@@ -1102,24 +1250,47 @@ function createOrUpdateIssue(inspection, checklistItem, description, severity, p
       aiStatus: "PENDING_AI",
       sourceRefs: checklistItem.sourceRefs,
       measurementTargets: checklistItem.measurementTargets || checklistItem.threshold,
+      requirementText: checklistItem.threshold,
+      ...normalizedDraft,
+      evidence: [],
+      verificationRequired: true,
+      reinspectionStatus: "נדרש אימות בשטח",
     };
     state.issues.unshift(issue);
     checklistItem.issueId = issue.id;
   } else {
-    issue.description = description || issue.description;
+    issue.description = normalizedDraft.observation || issue.description;
     issue.severity = severity;
     issue.photoName = photoName;
+    Object.assign(issue, normalizedDraft);
   }
 }
 
-async function storeIssuePhoto(issue, file) {
+async function storeIssueEvidence(issue, file, kind) {
   try {
-    issue.photoDataUrl = await fileToDataUrl(file);
-    issue.photoCapturedAt = new Date().toISOString();
-    saveState("issue_photo_saved_locally");
+    const evidence = {
+      id: crypto.randomUUID(),
+      kind,
+      fileName: file.name,
+      mediaType: file.type,
+      capturedAt: new Date().toISOString(),
+      dataUrl: await fileToDataUrl(file),
+    };
+    issue.evidence ||= [];
+    issue.evidence.push(evidence);
+    if (kind === "הקשר כללי") {
+      issue.photoDataUrl = evidence.dataUrl;
+      issue.photoCapturedAt = evidence.capturedAt;
+    }
+    saveState("issue_evidence_saved_locally");
   } catch {
     renderSystemStatus("הצילום צורף בשם הקובץ, אך לא ניתן היה לשמור אותו מקומית.");
   }
+}
+
+function renderEvidenceSummary(issue, element) {
+  const evidence = issue?.evidence || [];
+  element.textContent = evidence.length ? `תיק ראיות: ${evidence.length} קבצים נשמרו ללא דריסה. ${evidence.map((item) => `${item.kind}: ${item.fileName}`).join(" | ")}` : "תיק ראיות: טרם צורפו קבצים.";
 }
 
 function fileToDataUrl(file) {
@@ -1226,6 +1397,9 @@ function renderIssues() {
             const inspection = state.inspections.find((item) => item.id === issue.inspectionId);
             const regulatorySources = issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ");
             const requirement = measurementTargetsForIssue(inspection, issue);
+            const priorOccurrences = issue.elementId
+              ? state.issues.filter((entry) => entry.id !== issue.id && entry.siteName === issue.siteName && entry.elementId === issue.elementId).length
+              : 0;
             return `
             <article class="issue-card">
               <header>
@@ -1239,7 +1413,9 @@ function renderIssues() {
               <div class="issue-meta">
                 <span class="pill">חומרה: ${severityLabel(issue.severity)}</span>
                 <span class="pill">יעד: ${issue.dueDate}</span>
-                <span class="pill">צילום: ${issue.photoName}</span>
+                <span class="pill">ראיות: ${(issue.evidence || []).length}</span>
+                <span class="pill">אלמנט: ${escapeHtml(issue.elementId || "לא סומן")}</span>
+                ${priorOccurrences ? `<span class="pill">היסטוריה: ${priorOccurrences} דיווחים קודמים</span>` : ""}
                 <span class="pill">AI: ${issue.aiStatus}</span>
               </div>
               <aside class="regulatory-requirement" aria-label="דרישה נורמטיבית">
@@ -1248,6 +1424,11 @@ function renderIssues() {
                 <p>מה צריך להיות: ${escapeHtml(requirement)}</p>
                 <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
               </aside>
+              <div class="issue-facts muted small">
+                <strong>מדידה:</strong> ${escapeHtml(issue.measuredValue || "לא נמדד")} ${escapeHtml(issue.measurementUnit || "")} | ${escapeHtml(issue.measurementTool || "כלי לא צוין")} | ${escapeHtml(issue.measurementPoint || "נקודה לא צוינה")}<br />
+                <strong>השפעה:</strong> ${escapeHtml((issue.affectedGroups || []).join(", ") || "לא סווגה")} | ${issue.temporary ? "זמני" : "קבוע / לא סווג"} | ${issue.lifeSafety ? "סיכון חיי אדם או פינוי" : "ללא סימון חירום"}<br />
+                <strong>תיקון:</strong> ${escapeHtml(issue.liableParty || inspection?.liableParty || "אחראי טרם הוגדר")} | ${escapeHtml(issue.remediationType || "לא סווג")} | ${escapeHtml(issue.estimatedCost || "עלות לא הוזנה")} | היתר: ${escapeHtml(issue.permitNeeded || "לא ידוע")}
+              </div>
               <label class="full">
                 <span>עדכן סטטוס</span>
                 <select data-issue-id="${issue.id}" class="lifecycle-select">
@@ -1350,7 +1531,7 @@ function seedDemoData() {
     status: "draft",
     checklist: catalog.checklistTemplates.building.map((item) => ({
       ...item,
-      reviewStatus: item.id === "CHK-B1" ? "fail" : "pass",
+      reviewStatus: item.id === "B-ROUTE-WIDTH" ? "fail" : "pass",
       issueId: null,
     })),
   };
@@ -1368,7 +1549,7 @@ function seedDemoData() {
     status: "draft",
     checklist: catalog.checklistTemplates.service_center.map((item) => ({
       ...item,
-      reviewStatus: item.id === "CHK-SVC1" ? "fail" : "pass",
+      reviewStatus: item.id === "S-ARRANGEMENTS" ? "fail" : "pass",
       issueId: null,
     })),
   };
@@ -1441,6 +1622,31 @@ function captureCurrentLocation() {
   );
 }
 
+function captureIssueLocation(issue, button) {
+  if (!navigator.geolocation) {
+    renderSystemStatus("הדפדפן במכשיר זה אינו תומך בקבלת GPS.");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "מאתר מיקום...";
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      issue.gps = `${latitude.toFixed(6)}, ${longitude.toFixed(6)} (דיוק משוער ±${Math.round(accuracy)} מ׳)`;
+      issue.gpsCapturedAt = new Date().toISOString();
+      saveState("issue_gps_captured");
+      button.disabled = false;
+      button.textContent = "GPS נשמר לליקוי";
+    },
+    () => {
+      button.disabled = false;
+      button.textContent = "שמור GPS לליקוי";
+      renderSystemStatus("לא ניתן לשמור GPS לליקוי. בדוק הרשאת מיקום.");
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 },
+  );
+}
+
 function exportCsv() {
   const headers = ["id", "siteName", "title", "severity", "lifecycle", "dueDate", "aiStatus"];
   const rows = state.issues.map((issue) =>
@@ -1481,6 +1687,10 @@ function getApplicabilityProfile(id, clusterId) {
 
 function applicabilityProfileLabel(id, clusterId) {
   return getApplicabilityProfile(id, clusterId)?.name || "מסלול תחולה טרם נבחר";
+}
+
+function surveyTypeLabel(value) {
+  return { self: "בדיקה עצמית של החייב", internal: "סקר ממונה פנימי", external: "חוות דעת חיצונית" }[value] || "לא צוין";
 }
 
 function statusText(status) {
