@@ -5,7 +5,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.7.1";
+const APP_VERSION = "1.8.0";
 
 const catalog = {
   clusters: [
@@ -597,6 +597,7 @@ let state = loadState();
 let reportInspectionId = null;
 let accessibilityPreferences = loadAccessibilityPreferences();
 let databasePromise = null;
+let activeSeverityFilter = "all";
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -619,6 +620,13 @@ const els = {
   activeInspectionMeta: document.getElementById("active-inspection-meta"),
   issuesList: document.getElementById("issues-list"),
   statusFilter: document.getElementById("status-filter"),
+  issueSearch: document.getElementById("issue-search"),
+  responsibleFilter: document.getElementById("responsible-filter"),
+  dueFilter: document.getElementById("due-filter"),
+  reinspectionFilter: document.getElementById("reinspection-filter"),
+  clearIssueFilters: document.getElementById("clear-issue-filters"),
+  issueFilterSummary: document.getElementById("issue-filter-summary"),
+  prepareReinspection: document.getElementById("prepare-reinspection"),
   settingsForm: document.getElementById("settings-form"),
   settingsSummary: document.getElementById("settings-summary"),
   sourcesTableBody: document.getElementById("sources-table-body"),
@@ -759,6 +767,11 @@ function bindEvents() {
     populateApplicabilityProfiles();
   });
   els.statusFilter.addEventListener("change", renderIssues);
+  [els.issueSearch, els.responsibleFilter, els.dueFilter, els.reinspectionFilter].forEach((control) => {
+    control.addEventListener(control === els.issueSearch ? "input" : "change", renderIssues);
+  });
+  els.clearIssueFilters.addEventListener("click", clearIssueFilters);
+  els.prepareReinspection.addEventListener("click", prepareReinspection);
   els.settingsForm.addEventListener("submit", handleSaveSettings);
   els.seedDemo.addEventListener("click", seedDemoData);
   els.clearData.addEventListener("click", resetData);
@@ -1000,22 +1013,69 @@ function renderDashboard() {
     count: openIssues.filter((issue) => issue.severity === key).length,
   }));
   els.severityBreakdown.innerHTML = severityCounts
-    .map((item) => `<div class="list-row"><strong>${item.label}</strong><span>${item.count}</span></div>`)
+    .map(
+      (item) => `<button type="button" class="severity-shortcut" data-severity="${item.key}" aria-label="הצג ליקויים פתוחים בחומרה ${item.label}"><strong>${item.label}</strong><span>${item.count}</span></button>`,
+    )
     .join("");
+
+  els.severityBreakdown.querySelectorAll(".severity-shortcut").forEach((button) => {
+    button.addEventListener("click", () => openIssuesWithFilters({ severity: button.dataset.severity, status: "all" }));
+  });
 
   els.recentInspections.innerHTML = state.inspections.length
     ? state.inspections
         .slice(0, 5)
         .map(
           (inspection) => `
-            <div class="list-row">
+            <button type="button" class="recent-inspection-button" data-inspection-id="${inspection.id}" aria-label="פתח ביקורת ${escapeHtml(inspection.siteName)}">
               <strong>${inspection.siteName}</strong>
               <div class="muted small">${siteTypeLabel(inspection.siteType)} · ${formatDate(inspection.createdAt)}</div>
-            </div>
+            </button>
           `,
         )
         .join("")
     : `<div class="list-row">עדיין לא נפתחו ביקורות.</div>`;
+
+  els.recentInspections.querySelectorAll(".recent-inspection-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.activeInspectionId = button.dataset.inspectionId;
+      saveState("inspection_opened_from_dashboard");
+      render();
+      navigateToView("inspection");
+    });
+  });
+}
+
+function navigateToView(viewName) {
+  window.location.hash = viewName;
+  switchView(viewName);
+  document.getElementById("main-content").focus();
+}
+
+function openIssuesWithFilters({ severity = "all", status = "all" } = {}) {
+  activeSeverityFilter = severity;
+  els.statusFilter.value = status;
+  renderIssues();
+  navigateToView("issues");
+}
+
+function prepareReinspection() {
+  activeSeverityFilter = "all";
+  els.statusFilter.value = "all";
+  els.reinspectionFilter.value = "required";
+  renderIssues();
+  navigateToView("issues");
+  renderSystemStatus("מוצגים ליקויים שדורשים ביקורת חוזרת ואימות בשטח.");
+}
+
+function clearIssueFilters() {
+  activeSeverityFilter = "all";
+  els.statusFilter.value = "all";
+  els.issueSearch.value = "";
+  els.responsibleFilter.value = "all";
+  els.dueFilter.value = "all";
+  els.reinspectionFilter.value = "all";
+  renderIssues();
 }
 
 function renderActiveInspection() {
@@ -1592,8 +1652,26 @@ function archiveIssue(issueId, reviewStatus) {
 }
 
 function renderIssues() {
+  populateResponsibleFilter();
   const filter = els.statusFilter.value;
-  const issues = state.issues.filter((issue) => (filter === "all" ? true : issue.lifecycle === filter));
+  const query = normalizeSearchText(els.issueSearch.value);
+  const responsible = els.responsibleFilter.value;
+  const issues = state.issues.filter((issue) => {
+    const inspection = state.inspections.find((item) => item.id === issue.inspectionId);
+    const issueResponsible = issue.liableParty || inspection?.liableParty || "";
+    const searchable = [issue.id, issue.siteName, inspection?.address, issue.elementId, issue.title, issue.description, issueResponsible]
+      .filter(Boolean)
+      .join(" ");
+    return (
+      (filter === "all" || issue.lifecycle === filter) &&
+      (activeSeverityFilter === "all" || issue.severity === activeSeverityFilter) &&
+      (responsible === "all" || issueResponsible === responsible) &&
+      (els.dueFilter.value !== "overdue" || isIssueOverdue(issue)) &&
+      (els.reinspectionFilter.value !== "required" || (issue.lifecycle !== "closed" && !issue.verificationCompleted)) &&
+      (!query || normalizeSearchText(searchable).includes(query))
+    );
+  });
+  renderIssueFilterSummary(issues.length);
   els.issuesList.innerHTML = issues.length
     ? issues
         .map(
@@ -1617,6 +1695,7 @@ function renderIssues() {
               <div class="issue-meta">
                 <span class="pill">חומרה: ${severityLabel(issue.severity)}</span>
                 <span class="pill">יעד: ${issue.dueDate}</span>
+                ${isIssueOverdue(issue) ? `<span class="pill overdue">באיחור בטיפול</span>` : ""}
                 <span class="pill">ראיות: ${(issue.evidence || []).length}</span>
                 <span class="pill">אלמנט: ${escapeHtml(issue.elementId || "לא סומן")}</span>
                 ${priorOccurrences ? `<span class="pill">היסטוריה: ${priorOccurrences} דיווחים קודמים</span>` : ""}
@@ -1629,9 +1708,14 @@ function renderIssues() {
                 <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
               </aside>
               <div class="issue-facts muted small">
-                <strong>מדידה:</strong> ${escapeHtml(issue.measuredValue || "לא נמדד")} ${escapeHtml(issue.measurementUnit || "")} | ${escapeHtml(issue.measurementTool || "כלי לא צוין")} | ${escapeHtml(issue.measurementPoint || "נקודה לא צוינה")}<br />
+                <strong>מדידה בפועל:</strong> ${escapeHtml(issue.measuredValue || "לא נמדד")} ${escapeHtml(issue.measurementUnit || "")} | <strong>נדרש:</strong> ${escapeHtml(requirement)} | ${escapeHtml(issue.measurementTool || "כלי לא צוין")} | ${escapeHtml(issue.measurementPoint || "נקודה לא צוינה")}<br />
                 <strong>השפעה:</strong> ${escapeHtml((issue.affectedGroups || []).join(", ") || "לא סווגה")} | ${issue.temporary ? "זמני" : "קבוע / לא סווג"} | ${issue.lifeSafety ? "סיכון חיי אדם או פינוי" : "ללא סימון חירום"}<br />
                 <strong>תיקון:</strong> ${escapeHtml(issue.liableParty || inspection?.liableParty || "אחראי טרם הוגדר")} | ${escapeHtml(issue.remediationType || "לא סווג")} | ${escapeHtml(issue.estimatedCost || "עלות לא הוזנה")} | היתר: ${escapeHtml(issue.permitNeeded || "לא ידוע")}
+              </div>
+              <div class="issue-quick-actions">
+                <button type="button" class="quick-camera" data-issue-id="${issue.id}">פתח מצלמה והוסף ראיה</button>
+                <input class="quick-camera-file hidden" data-issue-id="${issue.id}" type="file" accept="image/*,video/*" capture="environment" />
+                <button type="button" class="copy-issue-id ghost" data-issue-id="${issue.id}">העתק מזהה ליקוי</button>
               </div>
               <details class="reinspection-panel" ${issue.verificationCompleted ? "open" : ""}>
                 <summary>ביקורת חוזרת וסגירה מאומתת</summary>
@@ -1704,6 +1788,78 @@ function renderIssues() {
       renderSystemStatus("הליקוי נסגר לאחר אימות חוזר בשטח.");
     });
   });
+
+  document.querySelectorAll(".quick-camera").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.closest(".issue-card").querySelector(".quick-camera-file").click();
+    });
+  });
+
+  document.querySelectorAll(".quick-camera-file").forEach((input) => {
+    input.addEventListener("change", async () => {
+      const file = input.files[0];
+      const issue = state.issues.find((entry) => entry.id === input.dataset.issueId);
+      if (!file || !issue) return;
+      await storeIssueEvidence(issue, file, "ראיה מהירה מהשטח");
+      render();
+      renderSystemStatus("הראיה צורפה לתיק הליקוי ונשמרה מקומית.");
+    });
+  });
+
+  document.querySelectorAll(".copy-issue-id").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await copyText(button.dataset.issueId);
+      renderSystemStatus(`מזהה הליקוי ${button.dataset.issueId} הועתק.`);
+    });
+  });
+}
+
+function populateResponsibleFilter() {
+  const current = els.responsibleFilter.value || "all";
+  const responsibleParties = [...new Set(
+    state.issues
+      .map((issue) => issue.liableParty || state.inspections.find((item) => item.id === issue.inspectionId)?.liableParty || "")
+      .filter(Boolean),
+  )].sort((first, second) => first.localeCompare(second, "he"));
+  els.responsibleFilter.innerHTML = `<option value="all">כל האחראים</option>${responsibleParties
+    .map((party) => `<option value="${escapeHtml(party)}">${escapeHtml(party)}</option>`)
+    .join("")}`;
+  els.responsibleFilter.value = responsibleParties.includes(current) ? current : "all";
+}
+
+function normalizeSearchText(value) {
+  return String(value || "").trim().toLocaleLowerCase("he");
+}
+
+function isIssueOverdue(issue) {
+  return Boolean(issue.dueDate && issue.lifecycle !== "closed" && issue.dueDate < new Date().toISOString().slice(0, 10));
+}
+
+function renderIssueFilterSummary(count) {
+  const parts = [];
+  if (activeSeverityFilter !== "all") parts.push(`חומרה: ${severityLabel(activeSeverityFilter)}`);
+  if (els.statusFilter.value !== "all") parts.push(`סטטוס: ${lifecycleLabel(els.statusFilter.value)}`);
+  if (els.responsibleFilter.value !== "all") parts.push(`אחראי: ${els.responsibleFilter.value}`);
+  if (els.dueFilter.value === "overdue") parts.push("ליקויים באיחור");
+  if (els.reinspectionFilter.value === "required") parts.push("נדרש אימות בשטח");
+  if (els.issueSearch.value.trim()) parts.push("חיפוש פעיל");
+  els.issueFilterSummary.textContent = `${count} ליקויים מוצגים${parts.length ? ` | ${parts.join(" | ")}` : ""}.`;
+}
+
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.append(input);
+  input.select();
+  document.execCommand("copy");
+  input.remove();
 }
 
 function handleSaveSettings(event) {

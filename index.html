@@ -52,6 +52,7 @@
               <p class="eyebrow">Dashboard</p>
               <h3 id="dashboard-title">תמונת מצב ארגונית</h3>
             </div>
+            <button id="prepare-reinspection" class="ghost">הכן ביקורת חוזרת</button>
           </div>
           <div id="stats-grid" class="stats-grid"></div>
           <div class="panel-grid">
@@ -185,7 +186,7 @@
               <h3 id="issues-title">ניהול ליקויים</h3>
             </div>
             <div class="toolbar">
-              <select id="status-filter">
+              <select id="status-filter" aria-label="סינון לפי סטטוס">
                 <option value="all">כל הסטטוסים</option>
                 <option value="open">פתוח</option>
                 <option value="assigned">הוקצה לטיפול</option>
@@ -199,6 +200,32 @@
               <button id="export-csv" class="ghost">ייצוא CSV</button>
             </div>
           </div>
+          <div class="issue-filter-bar" aria-label="סינון וחיפוש ליקויים">
+            <label>
+              <span>חיפוש ליקוי</span>
+              <input id="issue-search" type="search" placeholder="אתר, כתובת, אלמנט או מזהה" />
+            </label>
+            <label>
+              <span>אחראי לתיקון</span>
+              <select id="responsible-filter"><option value="all">כל האחראים</option></select>
+            </label>
+            <label>
+              <span>מועד טיפול</span>
+              <select id="due-filter">
+                <option value="all">כל המועדים</option>
+                <option value="overdue">באיחור</option>
+              </select>
+            </label>
+            <label>
+              <span>ביקורת חוזרת</span>
+              <select id="reinspection-filter">
+                <option value="all">כל הליקויים</option>
+                <option value="required">נדרש אימות בשטח</option>
+              </select>
+            </label>
+            <button id="clear-issue-filters" class="ghost" type="button">נקה סינון</button>
+          </div>
+          <p id="issue-filter-summary" class="muted small" aria-live="polite"></p>
           <div id="issues-list" class="issue-grid"></div>
         </section>
 

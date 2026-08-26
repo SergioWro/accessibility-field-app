@@ -313,6 +313,77 @@ body:has(.view:target) .view.is-active {
   align-items: center;
 }
 
+.issue-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+  margin: 0 0 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.issue-filter-bar label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.issue-filter-bar input,
+.issue-filter-bar select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.severity-shortcut,
+.recent-inspection-button {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  color: var(--text);
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.severity-shortcut:hover,
+.recent-inspection-button:hover {
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border-color: rgba(7, 92, 83, 0.25);
+}
+
+.issue-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0.85rem 0;
+}
+
+.issue-quick-actions button {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.pill.overdue {
+  color: #7d1c16;
+  border-color: #c86b62;
+  background: var(--danger-soft);
+  font-weight: 800;
+}
+
 .form-section-title {
   padding: 0.65rem 0.8rem;
   margin-top: 0.25rem;
@@ -716,6 +787,10 @@ body.accessibility-underlined-links a {
   .panel-head .toolbar,
   .toolbar {
     width: 100%;
+  }
+
+  .issue-filter-bar {
+    grid-template-columns: 1fr;
   }
 
   .toolbar > button,
