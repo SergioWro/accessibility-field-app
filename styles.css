@@ -48,6 +48,28 @@ button.ghost {
   border: 1px solid var(--line);
 }
 
+:focus-visible {
+  outline: 3px solid #173f9a;
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 30;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #173f9a;
+  color: white;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 300px 1fr;
@@ -346,6 +368,65 @@ body:has(.view:target) .view.is-active {
   border-radius: 18px;
   background: var(--primary-soft);
   color: var(--primary);
+}
+
+.accessibility-toggle {
+  position: fixed;
+  inset-inline-start: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  box-shadow: var(--shadow);
+}
+
+.accessibility-panel {
+  position: fixed;
+  inset-inline-start: 1rem;
+  bottom: 4.75rem;
+  z-index: 20;
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.accessibility-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.accessibility-info-link {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+body.accessibility-high-contrast {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-strong: #f0f0f0;
+  --text: #000000;
+  --muted: #1d1d1d;
+  --line: #000000;
+  --primary: #002f99;
+  --primary-soft: #e6efff;
+  --accent: #7a2600;
+  --danger: #9b0000;
+  background: #ffffff;
+}
+
+body.accessibility-high-contrast .sidebar,
+body.accessibility-high-contrast .sync-card,
+body.accessibility-high-contrast .panel,
+body.accessibility-high-contrast .hero {
+  background: #ffffff;
+  border-color: #000000;
+}
+
+body.accessibility-underlined-links a {
+  text-decoration: underline !important;
 }
 
 .ai-review-controls {

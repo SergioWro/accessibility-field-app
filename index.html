@@ -6,17 +6,18 @@
     <meta name="theme-color" content="#0c5b53" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>נגישון</title>
+    <title>נגיצ'ק</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icons/icon.svg" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">דלג לתוכן המרכזי</a>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
           <p id="app-version" class="eyebrow">גרסה</p>
-          <h1>נגישון</h1>
+          <h1>נגיצ'ק</h1>
           <p class="muted">MVP מקומי, single-user, local-first</p>
         </div>
         <nav class="nav" aria-label="ניווט ראשי">
@@ -31,14 +32,11 @@
         </section>
       </aside>
 
-      <main class="main-content">
+      <main id="main-content" class="main-content" tabindex="-1">
         <header class="hero">
           <div>
             <p class="eyebrow">כלי עבודה שדה</p>
             <h2>תיעוד, מעקב וייצוא ליקויי נגישות</h2>
-            <p class="muted">
-              תיעוד, מעקב ותיקון של ליקויי נגישות בשטח.
-            </p>
           </div>
           <div class="hero-actions">
             <button id="install-app" class="ghost hidden">התקן בטלפון</button>
@@ -216,6 +214,26 @@
         </section>
       </main>
     </div>
+
+    <button id="accessibility-toggle" class="accessibility-toggle" type="button" aria-expanded="false" aria-controls="accessibility-panel">
+      התאמות נגישות
+    </button>
+    <section id="accessibility-panel" class="accessibility-panel hidden" aria-labelledby="accessibility-title">
+      <div class="panel-head">
+        <h2 id="accessibility-title">התאמות נגישות</h2>
+        <button id="accessibility-close" class="ghost" type="button" aria-label="סגור התאמות נגישות">סגור</button>
+      </div>
+      <p class="muted small">ההתאמות נשמרות בדפדפן המקומי.</p>
+      <div class="accessibility-actions">
+        <button type="button" data-accessibility-action="font-increase">הגדל טקסט</button>
+        <button type="button" data-accessibility-action="font-decrease">הקטן טקסט</button>
+        <button type="button" class="ghost" data-accessibility-action="high-contrast">ניגודיות גבוהה</button>
+        <button type="button" class="ghost" data-accessibility-action="underline-links">הדגש קישורים</button>
+        <button type="button" class="ghost" data-accessibility-action="reset">אפס התאמות</button>
+      </div>
+      <p class="muted small">קיצור מקלדת: Alt+N לפתיחה או סגירה. ניתן לדלג לתוכן המרכזי בעזרת Tab בתחילת העמוד.</p>
+      <a class="accessibility-info-link" href="https://www.gov.il/he/pages/website_accessibility" target="_blank" rel="noopener">מידע רשמי על נגישות אתרי אינטרנט</a>
+    </section>
 
     <template id="checklist-item-template">
       <article class="check-item">

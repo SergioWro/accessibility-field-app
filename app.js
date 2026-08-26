@@ -1,6 +1,7 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
-const APP_VERSION = "1.0.1";
+const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
+const APP_VERSION = "1.1.0";
 
 const catalog = {
   clusters: [
@@ -186,6 +187,7 @@ const defaultState = {
 
 let state = loadState();
 let reportInspectionId = null;
+let accessibilityPreferences = loadAccessibilityPreferences();
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -220,6 +222,10 @@ const els = {
   exportJson: document.getElementById("export-json"),
   exportCsv: document.getElementById("export-csv"),
   installApp: document.getElementById("install-app"),
+  accessibilityToggle: document.getElementById("accessibility-toggle"),
+  accessibilityPanel: document.getElementById("accessibility-panel"),
+  accessibilityClose: document.getElementById("accessibility-close"),
+  accessibilityActions: [...document.querySelectorAll("[data-accessibility-action]")],
   checklistTemplate: document.getElementById("checklist-item-template"),
 };
 
@@ -229,6 +235,7 @@ init();
 
 function init() {
   els.appVersion.textContent = `גרסה ${APP_VERSION}`;
+  applyAccessibilityPreferences();
   populateInspectionForm();
   bindEvents();
   registerServiceWorker();
@@ -242,6 +249,15 @@ function loadState() {
     return raw ? { ...defaultState, ...JSON.parse(raw) } : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
+  }
+}
+
+function loadAccessibilityPreferences() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ACCESSIBILITY_STORAGE_KEY));
+    return { fontScale: 1, highContrast: false, underlineLinks: false, ...saved };
+  } catch {
+    return { fontScale: 1, highContrast: false, underlineLinks: false };
   }
 }
 
@@ -297,6 +313,40 @@ function bindEvents() {
     installPromptEvent = null;
     els.installApp.classList.add("hidden");
   });
+  els.accessibilityToggle.addEventListener("click", toggleAccessibilityPanel);
+  els.accessibilityClose.addEventListener("click", toggleAccessibilityPanel);
+  els.accessibilityActions.forEach((button) => {
+    button.addEventListener("click", () => updateAccessibilityPreference(button.dataset.accessibilityAction));
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.altKey && event.key.toLowerCase() === "n") {
+      event.preventDefault();
+      toggleAccessibilityPanel();
+    }
+  });
+}
+
+function toggleAccessibilityPanel() {
+  const isOpen = !els.accessibilityPanel.classList.contains("hidden");
+  els.accessibilityPanel.classList.toggle("hidden", isOpen);
+  els.accessibilityToggle.setAttribute("aria-expanded", String(!isOpen));
+  if (!isOpen) els.accessibilityClose.focus();
+}
+
+function updateAccessibilityPreference(action) {
+  if (action === "font-increase") accessibilityPreferences.fontScale = Math.min(1.4, accessibilityPreferences.fontScale + 0.1);
+  if (action === "font-decrease") accessibilityPreferences.fontScale = Math.max(0.9, accessibilityPreferences.fontScale - 0.1);
+  if (action === "high-contrast") accessibilityPreferences.highContrast = !accessibilityPreferences.highContrast;
+  if (action === "underline-links") accessibilityPreferences.underlineLinks = !accessibilityPreferences.underlineLinks;
+  if (action === "reset") accessibilityPreferences = { fontScale: 1, highContrast: false, underlineLinks: false };
+  applyAccessibilityPreferences();
+  localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(accessibilityPreferences));
+}
+
+function applyAccessibilityPreferences() {
+  document.documentElement.style.fontSize = `${accessibilityPreferences.fontScale}em`;
+  document.body.classList.toggle("accessibility-high-contrast", accessibilityPreferences.highContrast);
+  document.body.classList.toggle("accessibility-underlined-links", accessibilityPreferences.underlineLinks);
 }
 
 function registerServiceWorker() {
