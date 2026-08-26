@@ -306,6 +306,19 @@ body:has(.view:target) .view.is-active {
   margin-top: 1rem;
 }
 
+.regulatory-requirement {
+  grid-column: 1 / -1;
+  padding: 0.9rem 1rem;
+  border: 1px solid #b8d7d2;
+  border-right: 4px solid var(--primary);
+  border-radius: 12px;
+  background: var(--primary-soft);
+}
+
+.regulatory-requirement p {
+  margin: 0.45rem 0 0;
+}
+
 .badge {
   align-self: start;
   background: var(--surface-strong);

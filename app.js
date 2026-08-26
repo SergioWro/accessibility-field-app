@@ -1,7 +1,7 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.3.1";
 
 const catalog = {
   clusters: [
@@ -135,14 +135,14 @@ const catalog = {
       {
         id: "CHK-SVC1",
         title: "פרסום הסדרי נגישות",
-        threshold: "זמין וברור לציבור",
-        sourceRefs: ["FR-11.6"],
+        threshold: "הסדרי נגישות מפורסמים, ברורים וזמינים לציבור בערוצי השירות הרלוונטיים",
+        sourceRefs: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013"],
       },
       {
         id: "CHK-SVC2",
         title: "הדרכת עובדים",
-        threshold: "תוקף ומעקב הדרכה",
-        sourceRefs: ["FR-11.3"],
+        threshold: "עובדי השירות קיבלו הדרכת נגישות והארגון מנהל תיעוד ומעקב אחר ההדרכה",
+        sourceRefs: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013"],
       },
     ],
     event: [
@@ -709,10 +709,13 @@ function renderActiveInspection() {
     const analyzeButton = fragment.querySelector(".analyze-photo");
     const aiResult = fragment.querySelector(".ai-result");
     const aiReviewControls = fragment.querySelector(".ai-review-controls");
+    const regulatorySource = fragment.querySelector(".regulatory-source");
+    const regulatoryNeed = fragment.querySelector(".regulatory-need");
     const radios = [...fragment.querySelectorAll('input[type="radio"]')];
 
     title.textContent = item.title;
     meta.textContent = `${item.id} · ${item.threshold} · ${item.sourceRefs.join(", ")}`;
+    renderRegulatoryRequirement(inspection, item, regulatorySource, regulatoryNeed);
 
     if (item.reviewStatus !== "unreviewed") {
       badge.textContent = statusText(item.reviewStatus);
@@ -888,10 +891,10 @@ function renderCorrectionReport() {
     const action = document.createElement("p");
     action.textContent = `לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
     const target = document.createElement("p");
-    target.textContent = `יעד מדידה: ${measurementTargetsForIssue(inspection, issue)}`;
+    target.textContent = `מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`;
     const basis = document.createElement("p");
     basis.className = "muted small";
-    basis.textContent = `בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`;
+    basis.textContent = `חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`;
     entry.append(heading, priority, action, target, basis);
     els.correctionReportContent.append(entry);
   });
@@ -918,8 +921,8 @@ function saveCorrectionReport() {
     lines.push(`${index + 1}. ${issue.title}`);
     lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
     lines.push(`   - לביצוע: ${issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
-    lines.push(`   - יעד מדידה: ${measurementTargetsForIssue(inspection, issue)}`);
-    lines.push(`   - בסיס נורמטיבי לבדיקה: ${issue.aiAssessment?.legalBasis || legalBasesForInspection(inspection, issue).join("; ")}`);
+    lines.push(`   - מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`);
+    lines.push(`   - חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`);
     lines.push("");
   });
   lines.push("הערה: המקור המוצג הוא עזר לבדיקת תחולה ואינו מחליף הכרעה של מורשה/יועץ נגישות מוסמך.");
@@ -947,6 +950,16 @@ function measurementTargetsForIssue(inspection, issue) {
     "CHK-S2": "בשלט סטטי לכל קו: כל צלע 20 ס״מ לפחות; גובה אות 25 מ״מ ורוחב 5 מ״מ לפחות. בשילוט נגיש בולט: בליטה 0.8 מ״מ לפחות וגובה אות/ספרה 12 מ״מ לפחות.",
   };
   return issue.measurementTargets || checklistItem?.measurementTargets || verifiedTargets[issue.checklistId] || checklistItem?.threshold || "אין יעד מדידה כמותי מוגדר לפריט זה; נדרש אימות תחולה מקצועי.";
+}
+
+function regulatorySourcesForIssue(inspection, checklistItem) {
+  const directSources = (checklistItem.sourceRefs || []).filter((source) => !/^(FR|NFR)-/.test(source));
+  return [...new Set([...legalBasesForInspection(inspection, checklistItem), ...directSources])];
+}
+
+function renderRegulatoryRequirement(inspection, checklistItem, sourceElement, needElement) {
+  sourceElement.textContent = `חוק / תקנה / תקן מוצעים לבדיקה: ${regulatorySourcesForIssue(inspection, checklistItem).join("; ")}`;
+  needElement.textContent = `מה צריך להיות: ${measurementTargetsForIssue(inspection, checklistItem)}`;
 }
 
 function reviewAiAssessment(issueId, decision) {
@@ -1081,7 +1094,11 @@ function renderIssues() {
   els.issuesList.innerHTML = issues.length
     ? issues
         .map(
-          (issue) => `
+          (issue) => {
+            const inspection = state.inspections.find((item) => item.id === issue.inspectionId);
+            const regulatorySources = issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ");
+            const requirement = measurementTargetsForIssue(inspection, issue);
+            return `
             <article class="issue-card">
               <header>
                 <div>
@@ -1097,6 +1114,12 @@ function renderIssues() {
                 <span class="pill">צילום: ${issue.photoName}</span>
                 <span class="pill">AI: ${issue.aiStatus}</span>
               </div>
+              <aside class="regulatory-requirement" aria-label="דרישה נורמטיבית">
+                <strong>דרישה נורמטיבית מוצעת</strong>
+                <p>חוק / תקנה / תקן מוצעים לבדיקה: ${escapeHtml(regulatorySources)}</p>
+                <p>מה צריך להיות: ${escapeHtml(requirement)}</p>
+                <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
+              </aside>
               <label class="full">
                 <span>עדכן סטטוס</span>
                 <select data-issue-id="${issue.id}" class="lifecycle-select">
@@ -1109,7 +1132,8 @@ function renderIssues() {
                 </select>
               </label>
             </article>
-          `,
+          `;
+          },
         )
         .join("")
     : `<div class="issue-card">אין ליקויים בתצוגה הנוכחית.</div>`;
@@ -1202,9 +1226,29 @@ function seedDemoData() {
       issueId: null,
     })),
   };
+  const serviceInspection = {
+    id: crypto.randomUUID(),
+    cluster: "service",
+    siteType: "service_center",
+    applicabilityProfile: "public_service",
+    siteName: "מרכז שירות לתושבים",
+    address: "העצמאות 8, תל אביב",
+    inspector: "רכז נגישות",
+    gps: "לא הוזן",
+    notes: "ביקורת הדגמה בתחום השירות הנגיש",
+    createdAt: new Date().toISOString(),
+    status: "draft",
+    checklist: catalog.checklistTemplates.service_center.map((item) => ({
+      ...item,
+      reviewStatus: item.id === "CHK-SVC1" ? "fail" : "pass",
+      issueId: null,
+    })),
+  };
   state.inspections.push(inspection);
+  state.inspections.push(serviceInspection);
   state.activeInspectionId = inspection.id;
   createOrUpdateIssue(inspection, inspection.checklist[0], "רוחב המעבר נמדד כ-76 ס\"מ ליד עמדת הכניסה.", "high");
+  createOrUpdateIssue(serviceInspection, serviceInspection.checklist[0], "באתר ובדלפק השירות לא נמצא פרסום ברור של הסדרי הנגישות ודרכי הפנייה לקבלת סיוע.", "medium");
   state.pendingSyncCount = 2;
   saveState("demo_seeded");
   render();
@@ -1302,6 +1346,15 @@ function recommendationLabel(recommendation) {
     likely_issue: "ייתכן ליקוי נגישות",
   };
   return labels[recommendation] || recommendation;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function csvEscape(value) {
