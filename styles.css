@@ -359,6 +359,24 @@ body:has(.view:target) .view.is-active {
   align-items: center;
 }
 
+.reinspection-panel {
+  margin-top: 0.85rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-strong);
+}
+
+.reinspection-panel summary {
+  cursor: pointer;
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.reinspection-panel .form-grid {
+  margin-top: 0.85rem;
+}
+
 .inspection-workspace.hidden,
 .hidden {
   display: none;

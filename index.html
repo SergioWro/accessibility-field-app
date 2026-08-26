@@ -21,11 +21,11 @@
           <p class="muted">MVP מקומי, single-user, local-first</p>
         </div>
         <nav class="nav" aria-label="ניווט ראשי">
-          <a class="nav-link is-active" data-view="dashboard" href="#dashboard">לוח בקרה</a>
           <a class="nav-link" data-view="inspection" href="#inspection">ביקורת חדשה</a>
+          <a class="nav-link is-active" data-view="dashboard" href="#dashboard">לוח בקרה</a>
           <a class="nav-link" data-view="issues" href="#issues">ליקויים</a>
-          <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
           <a class="nav-link" data-view="sources" href="#sources">מקורות מידע</a>
+          <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
         </nav>
         <section class="sync-card">
           <h2>מצב מערכת</h2>
@@ -105,6 +105,9 @@
               <label><span>שטח עיקרי במ״ר</span><input type="number" name="mainArea" min="0" /></label>
               <label><span>מספר מפלסים</span><input type="number" name="levels" min="0" /></label>
               <label><span>קיבולת קהל</span><input type="number" name="publicCapacity" min="0" /></label>
+              <label><span>מספר חדרי אירוח</span><input type="number" name="accommodationRoomTotal" min="0" /></label>
+              <label><span>מספר חדרים נגישים נדרש</span><input type="number" name="accessibleRoomsRequired" min="0" /></label>
+              <label><span>מספר חדרים נגישים קיים</span><input type="number" name="accessibleRoomsExisting" min="0" /></label>
               <label>
                 <span>שם אתר</span>
                 <input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required />
@@ -136,6 +139,9 @@
               </label>
               <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
               <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
+              <label><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
+              <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>
+              <label class="full"><span>צירוף מסמכים מקומיים</span><input class="inspection-documents" type="file" multiple accept="image/*,application/pdf,.doc,.docx" /><small class="muted">המסמכים נשמרים במכשיר זה בלבד ונכללים בגיבוי JSON.</small></label>
               <label class="full"><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
               <div class="full form-actions">
                 <button type="submit">צור ביקורת</button>

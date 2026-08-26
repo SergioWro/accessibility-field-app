@@ -5,7 +5,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.7.1";
 
 const catalog = {
   clusters: [
@@ -73,14 +73,23 @@ const catalog = {
     { id: "public_information", cluster: "service", name: "מידע לציבור ופרסום הסדרי נגישות" },
     { id: "event", cluster: "service", name: "אירוע / כנס" },
     { id: "food_service", cluster: "service", name: "מסעדה / שירותי הסעדה" },
+    { id: "local_authority", cluster: "service", name: "רשות מקומית / משרד ציבורי" },
+    { id: "retail", cluster: "service", name: "חנות / קמעונאות" },
+    { id: "bank", cluster: "service", name: "בנק / שירות פיננסי" },
     { id: "website", cluster: "digital", name: "אתר אינטרנט" },
     { id: "mobile_app", cluster: "digital", name: "אפליקציה סלולרית" },
     { id: "kiosk", cluster: "digital", name: "קיוסק / מכונת שירות עצמי" },
     { id: "assistive_technology", cluster: "digital", name: "עזרים וטכנולוגיות נגישות" },
     { id: "accommodation", cluster: "special", name: "יחידת אכסון / מלון" },
     { id: "education", cluster: "special", name: "מוסד חינוך" },
+    { id: "school", cluster: "special", name: "בית ספר" },
+    { id: "kindergarten", cluster: "special", name: "גן ילדים" },
     { id: "health", cluster: "special", name: "מוסד בריאות" },
     { id: "higher_education", cluster: "special", name: "השכלה גבוהה" },
+    { id: "synagogue", cluster: "special", name: "בית כנסת / מקום תפילה" },
+    { id: "community_center", cluster: "special", name: "מתנ״ס / מרכז קהילתי" },
+    { id: "library", cluster: "special", name: "ספרייה" },
+    { id: "cultural_venue", cluster: "special", name: "מוזיאון / אולם תרבות" },
     { id: "park", cluster: "special", name: "פארק" },
     { id: "emergency", cluster: "special", name: "שעת חירום / מרחב מוגן" },
   ],
@@ -190,9 +199,9 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגישות בשטח v3.0",
+    title: "SRD נגיצ'ק v3.7",
     type: "מסמך דרישות",
-    use: "מבנה המערכת, קטגוריות הביקורת, צ׳קליסטים, זרימות עבודה וערכי סף מאומתים.",
+    use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
   },
   {
@@ -363,6 +372,28 @@ function surveyItem(id, title, threshold, sourceRefs, measurementUnit = "") {
   return { id, title, threshold, measurementTargets: threshold, sourceRefs, measurementUnit };
 }
 
+const requirementRegistry = {
+  "B-ROUTE-WIDTH": { source: 'ת"י 1918 חלק 2', section: "2.1.4", edition: "2012; אימות מהדורה נדרש", expected: "רוחב חופשי 130 ס״מ לפחות במסלול שעליו התקן חל", exceptions: "היצרויות ותחולת מבנה קיים מחייבות בדיקה פרטנית" },
+  "B-ROUTE-SLOPE": { source: 'ת"י 1918 חלק 2', section: "2.6.3", edition: "2012; אימות מהדורה נדרש", expected: "שיפוע אורכי עד 5% ורוחבי עד 2%", exceptions: "חריגים אפשריים לפי סעיף ותחולה" },
+  "B-RAMP": { source: 'ת"י 1918 חלק 2', section: "2.3", edition: "2012; אימות מהדורה נדרש", expected: "שיפוע, רוחב, משטחי ביניים ומעקות לפי גאומטריית הכבש", exceptions: "הדרישה משתנה לפי שטח חוץ, שטח פתוח ומבנה קיים" },
+  "B-WC": { source: 'ת"י 1918 חלק 3.1', section: "2.13", edition: "2023; אימות מהדורה נדרש", expected: "מידות תא, סיבוב, מאחזים, כיור, אסלה ודלת לפי טיפוס התא", exceptions: "במבנה קיים יש לבחון מסלול תחולה והפניה בדין" },
+  "B-PARKING": { source: 'ת"י 1918 חלק 2', section: "פרק חניה נגישת", edition: "אימות מהדורה נדרש", expected: "מספר מקומות, מידות, שילוט ומסלול נגיש מהחניה", exceptions: "מספר ומאפייני החניות תלויים בשימוש, גודל ותחולה" },
+  "D-KEYBOARD": { source: 'ת״י 5568 חלק 1', section: "דרישות מקלדת ומיקוד", edition: "אימות מהדורה ורמת התאמה נדרשים", expected: "תפעול מלא במקלדת ומיקוד נראה", exceptions: "נדרש גם אימות ידני בטכנולוגיה מסייעת" },
+  "D-CONTRAST": { source: 'ת״י 5568 חלק 1', section: "דרישות ניגוד ותצוגה", edition: "אימות מהדורה ורמת התאמה נדרשים", expected: "ניגוד ותצוגה נגישים לפי רמת התאמה חלה", exceptions: "בדיקה לפי רכיב, מצב ותוכן" },
+  "S-ARRANGEMENTS": { source: "תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013", section: "הסדרי נגישות ופרסומם", edition: "נוסח עדכני נדרש לאימות", expected: "מידע זמין ומעודכן המשקף את ההסדרים בפועל", exceptions: "יש לבדוק פטורים, תחולה והסדר שירות ספציפי" },
+  "A-ROOM-COUNT": { source: "תקנות התכנון והבנייה והוראות נגישות למבנה אכסון", section: "מספר חדרים נגישים לפי סוג המבנה והיתר", edition: "נוסח והיתר עדכניים נדרשים לאימות", expected: "מספר החדרים הנגישים הנדרש מול הקיים יתועד וייבדק לפי מסלול התחולה", exceptions: "מספר החדרים תלוי בסוג המבנה, מספר יחידות האירוח, מועד ההיתר והוראות מעבר" },
+};
+
+function requirementRecord(item) {
+  return requirementRegistry[item.id] || {
+    source: (item.sourceRefs || []).find((source) => !/^(FR|NFR)-/.test(source)) || "מקור נדרש להשלמה",
+    section: "סעיף מדויק נדרש לאימות לפני קביעה",
+    edition: "מהדורה ונוסח עדכני נדרשים לאימות",
+    expected: item.measurementTargets || item.threshold,
+    exceptions: "בדוק תחולה, חריגים, פטורים והוראות מעבר",
+  };
+}
+
 catalog.checklistTemplates.building = [
   surveyItem("B-PARKING", "חניה נגישה ומסלול מהחניה", "בדוק מספר מקומות נדרש מול קיים, מידות, שילוט ומסלול נגיש רציף לכניסה.", ['ת"י 1918 חלק 2', "תקנות מקום ציבורי בבניין קיים"], "ס״מ"),
   surveyItem("B-ROUTE-WIDTH", "דרך נגישה: רוחב נטו ומכשולים", "רוחב חופשי 130 ס״מ לפחות במסלול שבו ת״י 1918 חלק 2 חל; היצרות מותנית מחייבת אימות תחולה.", ['ת"י 1918 חלק 2'], "ס״מ"),
@@ -400,6 +431,151 @@ catalog.checklistTemplates.website = [
   surveyItem("D-CONTRAST", "ניגוד, שינוי גודל ותצוגה", "בדוק ניגוד, שינוי גודל טקסט, צפיפות ותפעול במסך נייד.", ['ת"י 5568 חלק 1']),
   surveyItem("D-DOCUMENTS", "מסמכים ותכנים חלופיים", "מסמכים נגישים או קיימת חלופה נגישה ומפורסמת.", ['ת"י 5568 חלק 2']),
   surveyItem("D-STATEMENT", "הצהרת נגישות וערוץ פנייה", "הצהרה מעודכנת כוללת התאמות, חריגים, פרטי רכז ודרך פנייה.", ["תקנות נגישות השירות, תקנות 35–35ו"]),
+];
+
+catalog.checklistTemplates.food_service = [
+  surveyItem("F-ENTRY", "כניסה, הזמנה וישיבה", "בדוק רצף נגיש, דלת, מעבר בין שולחנות ואפשרות הזמנה או שירות חלופי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("F-TABLE", "שולחנות נגישים", "לפחות 5% ולא פחות משולחן אחד במסלול הרלוונטי; בדוק גובה, חלל ברכיים ורצף הגעה.", ["נציבות שוויון זכויות, טופס עסקים קטנים"], "ס״מ"),
+  surveyItem("F-MENU", "תפריט, הזמנה ותשלום", "קיימת חלופה נגישה לתפריט, להזמנה ולתשלום.", ["תקנות נגישות השירות"]),
+  surveyItem("F-WC", "שירותים נגישים", "בדוק תחולה, תא נגיש, מסלול ושילוט.", ['ת"י 1918 חלק 3.1']),
+];
+
+catalog.checklistTemplates.education = [
+  surveyItem("ED-ROUTE", "מסלול נגיש לכיתות ולשירותים", "בדוק כניסה, מפלסים, דלתות, מעברים ושירותים נגישים לפי תחולה.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("ED-LEARNING", "הוראה, מידע וליווי", "בדוק התאמות מידע, שילוט, שירות ותיאום סיוע.", ["תקנות נגישות השירות"]),
+  surveyItem("ED-EMERGENCY", "פינוי וחירום", "בדוק נתיב פינוי, מידע נגיש וסיוע נדרש בהתאם לתכנית החירום.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.school = [
+  surveyItem("SC-ARRIVAL", "הגעה, שערים ומסלולים", "בדוק הורדה, חניה, שער, כניסה, מסלולים ומעברים בין מבנים.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("SC-LEARNING", "כיתות, מעבדות וחללי למידה", "בדוק מרחב תמרון, עמדות, ציוד, מידע ונגישות להשתתפות בפעילות.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("SC-RECESS", "חצר, ספורט והפסקות", "בדוק מסלול, ישיבה, שירותים, מתקנים ופעילות חוץ.", ['ת"י 1918 חלק 2']),
+  surveyItem("SC-SUPPORT", "מזכירות, הורים וליווי", "בדוק רישום, מידע, פגישות, שירות חלופי וליווי.", ["תקנות נגישות השירות"]),
+  surveyItem("SC-EMERGENCY", "חירום ומרחב מוגן", "בדוק התרעות, נתיבי פינוי, מרחב מוגן וסיוע אישי.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.kindergarten = [
+  surveyItem("KG-ARRIVAL", "הגעה, שער וכניסה", "בדוק אזור הורדה, שער, כניסה, דלת, מסלול ועגלות.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("KG-ACTIVITY", "חדרי פעילות וציוד", "בדוק מרחב תמרון, שולחנות, ציוד, מידע והשתתפות בפעילות.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("KG-YARD", "חצר ומשחקים", "בדוק משטחים, מסלול, ישיבה, הצללה ומתקנים.", ['ת"י 1918 חלק 2']),
+  surveyItem("KG-PARENTS", "שירות להורים ומידע", "בדוק רישום, מידע, פגישות ושירות חלופי.", ["תקנות נגישות השירות"]),
+  surveyItem("KG-EMERGENCY", "פינוי וחירום", "בדוק התרעות, יציאה, מרחב מוגן וסיוע.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.higher_education = [
+  surveyItem("HE-ARRIVAL", "הגעה ומבני קמפוס", "בדוק מסלולים בין מבנים, חניה, כניסה, מעליות ושילוט.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("HE-LEARNING", "כיתות, אולמות ומעבדות", "בדוק מקומות ישיבה, במה, עמדות הוראה, מעבדות וציוד.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("HE-SERVICE", "רישום, ספרייה ושירותי סטודנטים", "בדוק מידע, טפסים, שירות דיגיטלי, ספרייה וליווי.", ["תקנות נגישות השירות", 'ת"י 5568 חלקים 1 ו-2']),
+  surveyItem("HE-HOUSING", "מעונות ויחידות אירוח", "בדוק לפי תחולה מסלולים, חדרים, שירותים ושירותים נלווים.", ['ת"י 1918 חלק 3.1']),
+];
+
+catalog.checklistTemplates.health = [
+  surveyItem("H-ARRIVAL", "הגעה, חניה וקבלה", "בדוק חניה, דרך נגישה, דלפק, תור ושילוט.", ['ת"י 1918', "תקנות נגישות השירות"]),
+  surveyItem("H-CLINIC", "חדרי טיפול ובדיקה", "בדוק מסלול, דלתות, מרחב תמרון, מיטה או כיסא בדיקה ושירות חלופי.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("H-COMMUNICATION", "תקשורת ומידע רפואי נגיש", "בדוק תרגום, לולאת השראה, מסמכים, מידע ושירות לאנשים עם מוגבלות תקשורתית.", ["תקנות נגישות השירות"]),
+];
+
+catalog.checklistTemplates.accommodation = [
+  surveyItem("A-ROOM-COUNT", "מספר חדרים נגישים: נדרש מול קיים", "תעד מספר חדרי אירוח, מספר חדרים נגישים נדרש ומספר חדרים נגישים קיים לפי מסלול התחולה וההיתר.", ["תקנות התכנון והבנייה והוראות נגישות למבנה אכסון", 'ת"י 1918 לפי תחולה']),
+  surveyItem("A-ARRIVAL", "הגעה, הורדה, חניה וכניסה", "בדוק אזור הורדה, חניה נגישה, דרך רציפה, כניסה, דלת וקבלה.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("A-RECEPTION", "קבלה, הזמנה ומידע לאורח", "בדוק דלפק נגיש, הזמנה באתר ובטלפון, מידע נגיש, שירות חלופי וכלב נחייה.", ["תקנות נגישות השירות", 'ת"י 5568 חלק 1']),
+  surveyItem("A-ROOM", "חדר אירוח נגיש", "בדוק מסלול, דלת, מרחב תמרון, מיטה, ארון, אמצעי הפעלה, טלפון ומידע בחדר לפי התחולה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("A-BATH", "חדר רחצה ומקלחת נגישים", "בדוק דלת, מרחב תמרון, אסלה, מאחזים, כיור, ברז, מקלחת, מושב ואמצעי מצוקה לפי התחולה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("A-VERTICAL", "מעליות, קומות ומסלולים ציבוריים", "בדוק מעלית, לחצנים, כריזה, כתב מובלט, מסלולים, דלתות ושילוט לכל שטחי האירוח.", ['ת"י 1918 חלק 3.1', 'ת"י 1918 חלק 6']),
+  surveyItem("A-PUBLIC", "שטחים ציבוריים: לובי, הסעדה וכנסים", "בדוק מסלול, ישיבה, דלפקים, שירותים, שולחנות, במה ומידע נגיש בשטחים הציבוריים הקיימים.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("A-LEISURE", "בריכה, ספא, חדר כושר ומתקני פנאי", "בדוק את מסלול ההגעה, הכניסה, השירות, ההלבשה והאמצעים הנגישים בכל מתקן שקיים במלון.", ['ת"י 1918 לפי תחולה', "תקנות נגישות השירות"]),
+  surveyItem("A-SENSORY", "נגישות שמיעה, ראייה ותקשורת", "בדוק לולאת השראה, התרעות חזותיות, שילוט ניגודי או מישושי, מידע חלופי וסיוע לאורחים לפי צורך.", ["תקנות נגישות השירות", 'ת"י 1918 חלק 6']),
+  surveyItem("A-EVAC", "פינוי וחירום לאורחים", "בדוק תכנית פינוי, התרעות קוליות וחזותיות, מידע נגיש, סיוע והיערכות לאורח עם מוגבלות בעת חירום.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.bus_stop = [
+  surveyItem("T-DEPLOY", "רחבת היערכות ומקום המתנה", "רחבת היערכות עירונית 250×200 ס״מ לפחות; מקום המתנה לכיסא גלגלים 120×80 ס״מ לפחות.", ["תקנות נגישות תחבורה ציבורית, תוספת חמישית"], "ס״מ"),
+  surveyItem("T-CLEAR", "מעבר חופשי ודרך נגישה", "מעבר חופשי בחזית סככה 110 ס״מ לפחות ורציפות דרך נגישה אל התחנה.", ["תקנות נגישות תחבורה ציבורית, תוספת חמישית"], "ס״מ"),
+  surveyItem("T-SIGN", "שילוט ומידע לנוסע", "בדוק קריאות, ניגוד, גודל, מיקום ומידע נגיש לפי ההוראות החלות.", ["תקנות נגישות תחבורה ציבורית", "משרד התחבורה, הנחיות תחנות אוטובוס"]),
+];
+
+catalog.checklistTemplates.education = [
+  surveyItem("ED-ARRIVAL", "הגעה, הורדה וכניסה", "בדוק חניה או הורדה, מסלול נגיש, כניסה, שער ודלתות.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("ED-CLASS", "כיתות, מעבדות וחללי למידה", "בדוק מעבר, מרחב תמרון, עמדות לימוד, לוחות, ציוד ומידע נגיש.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("ED-PLAY", "חצר, משחקים ופעילות חוץ", "בדוק רצף מסלול, משטחים, מתקנים, ישיבה והשגחה בהתאם לתחולה.", ['ת"י 1918 חלק 2']),
+  surveyItem("ED-SERVICE", "מזכירות, מידע וליווי", "בדוק רישום, מידע, תקשורת, שירות חלופי וליווי לתלמיד או הורה.", ["תקנות נגישות השירות"]),
+  surveyItem("ED-WC", "שירותים וחדרי טיפול", "בדוק תא נגיש, מסלול, ציוד ושילוט לפי התחולה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("ED-EMERGENCY", "פינוי וחירום", "בדוק מידע, התרעות, נתיב פינוי, מרחב מוגן וסיוע אישי.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.synagogue = [
+  surveyItem("SY-ARRIVAL", "הגעה, חניה וכניסה", "בדוק חניה, דרך נגישה, כניסה, דלת, סף ורמפה או חלופה.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("SY-HALL", "אולם תפילה, ישיבה ובמה", "בדוק מסלול, מקומות ישיבה, אזור תפילה, במה או בימה, שולחנות ונראות.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("SY-SERVICE", "מידע, תפילה ושירות חלופי", "בדוק שילוט, מידע, סיוע, ספרי תפילה או מידע חלופי ושירות לאנשים עם מוגבלות.", ["תקנות נגישות השירות"]),
+  surveyItem("SY-WC", "שירותים וחללים נלווים", "בדוק מסלול ושירותים נגישים לפי תחולה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("SY-EMERGENCY", "פינוי וחירום", "בדוק נתיב פינוי, שילוט וסיוע בעת חירום.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.community_center = [
+  surveyItem("CC-ARRIVAL", "הגעה, קבלה ומסלול", "בדוק חניה, כניסה, קבלה, מסלולים ומעליות.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("CC-ACTIVITY", "חוגים, אולמות ובמות", "בדוק השתתפות, ישיבה, במה, חדרי פעילות, ציוד ומידע נגיש.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("CC-SERVICE", "רישום, מידע ושירות", "בדוק הרשמה, תשלום, פרסום, ליווי ושירות חלופי.", ["תקנות נגישות השירות"]),
+  surveyItem("CC-WC", "שירותים ומלתחות", "בדוק מסלול, שירותים או מלתחות נגישים לפי תחולה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("CC-EMERGENCY", "פינוי וחירום", "בדוק מידע, התרעות, פינוי וסיוע.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.library = [
+  surveyItem("LI-ARRIVAL", "הגעה, כניסה ודלפק", "בדוק מסלול, דלתות, דלפק השאלה ושירות עצמי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("LI-COLLECTION", "מדפים, עמדות קריאה ומחשבים", "בדוק מעבר בין מדפים, גישה לחומרים, מקומות ישיבה ועמדות מחשב.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("LI-INFORMATION", "מידע, קטלוג ותכנים חלופיים", "בדוק קטלוג דיגיטלי, מידע נגיש, עזרי קריאה ושירות חלופי.", ["תקנות נגישות השירות", 'ת"י 5568 חלק 1']),
+  surveyItem("LI-SENSORY", "נגישות ראייה, שמיעה ותקשורת", "בדוק שילוט, ניגוד, מידע קולי או חזותי וסיוע.", ['ת"י 1918 חלק 6', "תקנות נגישות השירות"]),
+];
+
+catalog.checklistTemplates.cultural_venue = [
+  surveyItem("CU-ARRIVAL", "הגעה, קופות וכניסה", "בדוק חניה, מסלול, קופות, כניסה ושירות חלופי.", ['ת"י 1918 חלקים 2 ו-3.1', "תקנות נגישות השירות"]),
+  surveyItem("CU-SEATING", "מקומות ישיבה ותאי צפייה", "בדוק מקומות נגישים, נראות, מסלול הגעה וישיבה למלווה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("CU-CONTENT", "תוכן, כתוביות ועזרי שמיעה", "בדוק כתוביות, תיאור קולי, לולאת השראה, מידע חלופי ושילוט.", ["תקנות נגישות השירות"]),
+  surveyItem("CU-EXHIBIT", "תערוכות, מסלולים ותצוגות", "בדוק גובה, מרחב, ניגוד, מישוש ומידע חלופי לפי אופי התצוגה.", ['ת"י 1918 חלק 6']),
+  surveyItem("CU-EMERGENCY", "פינוי וחירום", "בדוק התרעות, נתיבי פינוי, מידע וסיוע לקהל.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.sports_facility = [
+  surveyItem("SP-ARRIVAL", "הגעה, כניסה ומלתחות", "בדוק חניה, מסלול, כניסה, מלתחות, שירותים ומקלחות.", ['ת"י 1918 חלקים 2 ו-3.1']),
+  surveyItem("SP-ACTIVITY", "מתקני פעילות וצפייה", "בדוק גישה למתקנים, אזורי פעילות, ישיבה ותאי צפייה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("SP-SERVICE", "רישום, מידע ושירות", "בדוק הרשמה, תשלום, מידע, ליווי ושירות חלופי.", ["תקנות נגישות השירות"]),
+  surveyItem("SP-EMERGENCY", "פינוי וחירום", "בדוק נתיבי פינוי, התרעות וסיוע.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.park = [
+  surveyItem("PK-ROUTE", "מסלולים ומשטחים", "בדוק רוחב, שיפוע, רציפות, מכשולים, סבכות ומשטחים.", ['ת"י 1918 חלק 2']),
+  surveyItem("PK-FURNITURE", "ריהוט רחוב, ישיבה ושילוט", "בדוק מיקום ספסלים, מתקנים, ניגוד, שילוט ורצף מעבר.", ['ת"י 1918 חלקים 2 ו-6']),
+  surveyItem("PK-ACTIVITY", "מתקנים ושירותים", "בדוק גישה למתקנים, אזורי משחק, שירותים ומידע.", ['ת"י 1918 לפי תחולה']),
+  surveyItem("PK-EMERGENCY", "תאורה, חירום ובטיחות", "בדוק תאורה במסלולים, מידע חירום ונקודות סיוע.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.beach = [
+  surveyItem("BE-ACCESS", "גישה לחוף ולמים", "בדוק חניה, מסלול, משטח, הצללה, ישיבה ודרך נגישה לשפת המים או פתרון חלופי.", ['ת"י 1918 חלק 2', "הנחיות רשות מקומית לפי תחולה"]),
+  surveyItem("BE-SERVICE", "שירותים, מלתחות ומידע", "בדוק שירותים, מלתחות, מידע, עזרה ושירות חלופי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("BE-SAFETY", "בטיחות, הצלה וחירום", "בדוק מידע בטיחותי נגיש, שירותי הצלה, התרעות וסיוע.", ["הוראות בטיחות וחירום לפי תחולה"]),
+];
+
+catalog.checklistTemplates.cemetery = [
+  surveyItem("CE-ACCESS", "כניסה ומסלולי הליכה", "בדוק חניה, דרך נגישה, משטחים, שיפועים ומכשולים.", ['ת"י 1918 חלק 2']),
+  surveyItem("CE-SERVICE", "מידע, טקס ושירות", "בדוק מידע, שילוט, אזור טקס, ישיבה ושירות חלופי.", ["תקנות נגישות השירות"]),
+  surveyItem("CE-WC", "שירותים ומתקנים", "בדוק שירותים נגישים ומסלול אליהם לפי תחולה.", ['ת"י 1918 חלק 3.1']),
+];
+
+catalog.checklistTemplates.local_authority = [
+  surveyItem("LA-ARRIVAL", "הגעה, קבלה ותור", "בדוק מסלול, דלפק, המתנה, תור ושירות עצמי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("LA-SERVICE", "מידע, טפסים ושירות חלופי", "בדוק טפסים, קבלות, מידע נגיש, שירות חלופי ופרסום הסדרים.", ["תקנות נגישות השירות", 'ת"י 5568 חלק 2']),
+  surveyItem("LA-DIGITAL", "אתר, זימון תורים וערוץ דיגיטלי", "בדוק שירות דיגיטלי, זימון תור, מסמכים וערוץ פנייה נגיש.", ["תקנות נגישות השירות, תקנות 35–35ו", 'ת"י 5568 חלק 1']),
+];
+
+catalog.checklistTemplates.retail = [
+  surveyItem("RE-ENTRY", "כניסה ומעברים", "בדוק כניסה, דלתות, מעברים, תצוגה ומסלול לקופה.", ['ת"י 1918 חלק 3.1']),
+  surveyItem("RE-CASHIER", "קופה, שירות ותשלום", "בדוק דלפק, תשלום, שירות עצמי, מידע וסיוע.", ["תקנות נגישות השירות"]),
+  surveyItem("RE-INFO", "שילוט ומידע מוצר", "בדוק קריאות, ניגוד, מידע חלופי וסיוע.", ['ת"י 1918 חלק 6', "תקנות נגישות השירות"]),
+];
+
+catalog.checklistTemplates.bank = [
+  surveyItem("BA-ARRIVAL", "כניסה, קבלה והמתנה", "בדוק מסלול, דלפק, תור, המתנה ושירות חלופי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
+  surveyItem("BA-ATM", "כספומט ומכונות שירות", "בדוק גובה רכיבי הפעלה, שטח תמרון, משוב חזותי וקולי וחלופה אנושית.", ["תקנות נגישות השירות"]),
+  surveyItem("BA-DOCS", "מסמכים, חוזים וערוצים דיגיטליים", "בדוק מסמכים נגישים, אתר, אפליקציה וערוץ סיוע.", ['ת"י 5568 חלקים 1 ו-2', "תקנות נגישות השירות"]),
 ];
 
 const defaultState = {
@@ -701,7 +877,7 @@ function viewFromHash() {
   return Object.hasOwn(els.views, name) ? name : "dashboard";
 }
 
-function handleCreateInspection(event) {
+async function handleCreateInspection(event) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
   const siteType = formData.get("siteType");
@@ -724,6 +900,9 @@ function handleCreateInspection(event) {
     mainArea: formData.get("mainArea"),
     levels: formData.get("levels"),
     publicCapacity: formData.get("publicCapacity"),
+    accommodationRoomTotal: formData.get("accommodationRoomTotal"),
+    accessibleRoomsRequired: formData.get("accessibleRoomsRequired"),
+    accessibleRoomsExisting: formData.get("accessibleRoomsExisting"),
     inspectorCredential: formData.get("inspectorCredential"),
     surveyType: formData.get("surveyType"),
     liableParty: formData.get("liableParty"),
@@ -733,7 +912,10 @@ function handleCreateInspection(event) {
     requiredFacilities: formData.getAll("requiredFacilities"),
     recordFlags: formData.getAll("recordFlags"),
     exemptionDetails: formData.get("exemptionDetails"),
+    documentType: formData.get("documentType"),
+    documentReference: formData.get("documentReference"),
     scopeLimitations: formData.get("scopeLimitations"),
+    documents: [],
     createdAt: new Date().toISOString(),
     status: "draft",
     checklist: catalog.checklistTemplates[siteType].map((item) => ({
@@ -746,11 +928,29 @@ function handleCreateInspection(event) {
   state.inspections.unshift(inspection);
   state.activeInspectionId = inspection.id;
   state.pendingSyncCount += 1;
+  const documentFiles = [...event.currentTarget.querySelector(".inspection-documents").files];
+  for (const file of documentFiles) await storeInspectionDocument(inspection, file);
   saveState("inspection_created");
   event.currentTarget.reset();
   populateInspectionForm();
   render();
   switchView("inspection");
+}
+
+async function storeInspectionDocument(inspection, file) {
+  try {
+    inspection.documents.push({
+      id: crypto.randomUUID(),
+      type: inspection.documentType || "other",
+      reference: inspection.documentReference || "",
+      name: file.name,
+      mediaType: file.type,
+      addedAt: new Date().toISOString(),
+      dataUrl: await fileToDataUrl(file),
+    });
+  } catch {
+    renderSystemStatus(`לא ניתן לשמור את המסמך המקומי: ${file.name}`);
+  }
 }
 
 function render() {
@@ -1128,6 +1328,8 @@ function printCorrectionReport() {
               <p><strong>לביצוע:</strong> ${escapeHtml(issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
               <p><strong>מה צריך להיות:</strong> ${escapeHtml(measurementTargetsForIssue(inspection, issue))}</p>
               <p><strong>חוק / תקנה / תקן מוצעים לבדיקה:</strong> ${escapeHtml(issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; "))}</p>
+              <p><strong>ראיות:</strong> ${escapeHtml((issue.evidence || []).map((evidence) => `${evidence.kind}: ${evidence.fileName}`).join(" | ") || "לא צורפו")}</p>
+              <p><strong>ביקורת חוזרת:</strong> ${issue.verificationCompleted ? `${escapeHtml(issue.reinspectionDate)} | ${escapeHtml(issue.reinspectionVerifier)} | ${escapeHtml(issue.reinspectionValue)} ${escapeHtml(issue.measurementUnit || "")}` : "טרם בוצעה"}</p>
             </article>`,
         )
         .join("")
@@ -1138,7 +1340,8 @@ function printCorrectionReport() {
     return;
   }
   printWindow.opener = null;
-  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח לתיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
+  const documents = (inspection.documents || []).map((document) => `${document.type}: ${document.name} (${document.reference || "ללא אסמכתה"})`).join(" | ") || "לא צורפו מסמכי בסיס";
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח סקר ותיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p><p><strong>מסמכי בסיס מקומיים:</strong> ${escapeHtml(documents)}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 250);
@@ -1173,8 +1376,9 @@ function regulatorySourcesForIssue(inspection, checklistItem) {
 }
 
 function renderRegulatoryRequirement(inspection, checklistItem, sourceElement, needElement) {
-  sourceElement.textContent = `חוק / תקנה / תקן מוצעים לבדיקה: ${regulatorySourcesForIssue(inspection, checklistItem).join("; ")}`;
-  needElement.textContent = `מה צריך להיות: ${measurementTargetsForIssue(inspection, checklistItem)}`;
+  const record = requirementRecord(checklistItem);
+  sourceElement.textContent = `מקור: ${record.source} | סעיף: ${record.section} | מהדורה/נוסח: ${record.edition}`;
+  needElement.textContent = `מה צריך להיות: ${record.expected}. חריגים ותחולה: ${record.exceptions}`;
 }
 
 function reviewAiAssessment(issueId, decision) {
@@ -1429,6 +1633,17 @@ function renderIssues() {
                 <strong>השפעה:</strong> ${escapeHtml((issue.affectedGroups || []).join(", ") || "לא סווגה")} | ${issue.temporary ? "זמני" : "קבוע / לא סווג"} | ${issue.lifeSafety ? "סיכון חיי אדם או פינוי" : "ללא סימון חירום"}<br />
                 <strong>תיקון:</strong> ${escapeHtml(issue.liableParty || inspection?.liableParty || "אחראי טרם הוגדר")} | ${escapeHtml(issue.remediationType || "לא סווג")} | ${escapeHtml(issue.estimatedCost || "עלות לא הוזנה")} | היתר: ${escapeHtml(issue.permitNeeded || "לא ידוע")}
               </div>
+              <details class="reinspection-panel" ${issue.verificationCompleted ? "open" : ""}>
+                <summary>ביקורת חוזרת וסגירה מאומתת</summary>
+                <div class="form-grid">
+                  <label><span>תאריך אימות</span><input class="reinspection-date" type="date" value="${issue.reinspectionDate || ""}" /></label>
+                  <label><span>שם המאמת</span><input class="reinspection-verifier" type="text" value="${escapeHtml(issue.reinspectionVerifier || "")}" /></label>
+                  <label><span>מדידה חוזרת</span><input class="reinspection-value" type="text" value="${escapeHtml(issue.reinspectionValue || "")}" placeholder="ערך לאחר תיקון" /></label>
+                  <label><span>כלי מדידה חוזרת</span><input class="reinspection-tool" type="text" value="${escapeHtml(issue.reinspectionTool || "")}" /></label>
+                  <label class="full"><span>תמונת אחרי / ראיה חוזרת</span><input class="reinspection-photo" type="file" accept="image/*,video/*" capture="environment" /></label>
+                  <div class="full"><button type="button" class="verify-close" data-issue-id="${issue.id}">${issue.verificationCompleted ? "אימות הושלם" : "אשר אימות וסגור ליקוי"}</button></div>
+                </div>
+              </details>
               <label class="full">
                 <span>עדכן סטטוס</span>
                 <select data-issue-id="${issue.id}" class="lifecycle-select">
@@ -1451,9 +1666,42 @@ function renderIssues() {
     select.addEventListener("change", () => {
       const issue = state.issues.find((entry) => entry.id === select.dataset.issueId);
       if (!issue) return;
+      if (select.value === "closed" && !issue.verificationCompleted) {
+        select.value = issue.lifecycle;
+        renderSystemStatus("לא ניתן לסגור ליקוי ללא ביקורת חוזרת מאומתת, מדידה חוזרת ושם מאמת.");
+        return;
+      }
       issue.lifecycle = select.value;
       saveState("issue_lifecycle_updated");
       render();
+    });
+  });
+
+  document.querySelectorAll(".verify-close").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const issue = state.issues.find((entry) => entry.id === button.dataset.issueId);
+      if (!issue) return;
+      const panel = button.closest(".reinspection-panel");
+      const date = panel.querySelector(".reinspection-date").value;
+      const verifier = panel.querySelector(".reinspection-verifier").value.trim();
+      const value = panel.querySelector(".reinspection-value").value.trim();
+      const tool = panel.querySelector(".reinspection-tool").value.trim();
+      if (!date || !verifier || !value || !tool) {
+        renderSystemStatus("לסגירה נדרשים תאריך אימות, שם מאמת, מדידה חוזרת וכלי מדידה.");
+        return;
+      }
+      const afterPhoto = panel.querySelector(".reinspection-photo").files[0];
+      if (afterPhoto) await storeIssueEvidence(issue, afterPhoto, "אחרי תיקון / ביקורת חוזרת");
+      issue.reinspectionDate = date;
+      issue.reinspectionVerifier = verifier;
+      issue.reinspectionValue = value;
+      issue.reinspectionTool = tool;
+      issue.verificationCompleted = true;
+      issue.reinspectionStatus = "אומת בשטח";
+      issue.lifecycle = "closed";
+      saveState("issue_reinspected_and_closed");
+      render();
+      renderSystemStatus("הליקוי נסגר לאחר אימות חוזר בשטח.");
     });
   });
 }
