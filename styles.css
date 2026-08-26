@@ -384,6 +384,90 @@ body:has(.view:target) .view.is-active {
   font-weight: 800;
 }
 
+.checkbox-line {
+  display: flex !important;
+  align-items: start;
+  gap: 0.6rem;
+}
+
+.checkbox-line input {
+  width: auto;
+  margin-top: 0.25rem;
+}
+
+.app-update-notice {
+  position: fixed;
+  inset-inline: 1rem;
+  bottom: 1rem;
+  z-index: 25;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: white;
+  background: var(--primary-dark);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.app-update-notice button {
+  min-height: 36px;
+  padding: 0.35rem 0.7rem;
+  color: var(--primary-dark);
+  background: white;
+}
+
+dialog {
+  width: min(560px, calc(100% - 2rem));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgba(23, 33, 31, 0.45);
+}
+
+.help-trigger {
+  display: inline-grid;
+  width: 1.55rem;
+  min-width: 1.55rem;
+  min-height: 1.55rem;
+  margin-inline-start: 0.35rem;
+  padding: 0;
+  place-items: center;
+  vertical-align: middle;
+  border-radius: 50%;
+  color: var(--primary-dark);
+  background: var(--surface);
+  border-color: var(--primary);
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.help-trigger:hover,
+.help-trigger[aria-expanded="true"] {
+  color: white;
+  background: var(--primary);
+}
+
+.context-help-popover {
+  position: fixed;
+  z-index: 40;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
 .form-section-title {
   padding: 0.65rem 0.8rem;
   margin-top: 0.25rem;

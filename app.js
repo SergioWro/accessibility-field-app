@@ -1,11 +1,13 @@
-const STORAGE_KEY = "accessibility-field-app-state-v1";
+const STORAGE_KEY = "accessibility-field-app-state-v2";
+const LEGACY_STORAGE_KEY = "accessibility-field-app-state-v1";
 const DATABASE_NAME = "accessibility-field-app";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
+const STATE_SCHEMA_VERSION = 2;
 const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.9.1";
 
 const catalog = {
   clusters: [
@@ -199,7 +201,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.7",
+    title: "SRD נגיצ'ק v3.9",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -352,18 +354,21 @@ function createBaselineChecklist(siteType) {
       title: `רצף נגישות עבור ${siteType.name}`,
       threshold: "בדיקה לפי תחולה, מסלול גישה והשימוש באתר",
       sourceRefs: ["FR-2.1", "FR-4.1", "ת\"י 1918 לפי תחולה"],
+      baselineOnly: true,
     },
     {
       id: `CHK-${prefix}-2`,
       title: "מידע, שילוט ושירות נגישים",
       threshold: "מידע ברור וחלופה נגישה כאשר נדרשת",
       sourceRefs: ["FR-4.2", "FR-11.4", "FR-11.6"],
+      baselineOnly: true,
     },
     {
       id: `CHK-${prefix}-3`,
       title: "בדיקת תחולה מקצועית",
       threshold: "אימות מקור, סוג שימוש, מועד וחריגים לפני הכרעה",
       sourceRefs: ["FR-13.4", "NFR-19"],
+      baselineOnly: true,
     },
   ];
 }
@@ -579,6 +584,7 @@ catalog.checklistTemplates.bank = [
 ];
 
 const defaultState = {
+  schemaVersion: STATE_SCHEMA_VERSION,
   settings: {
     apiKeyMasked: "",
     visionModel: "gpt-4.1-mini",
@@ -598,6 +604,10 @@ let reportInspectionId = null;
 let accessibilityPreferences = loadAccessibilityPreferences();
 let databasePromise = null;
 let activeSeverityFilter = "all";
+let pendingImportedBackup = null;
+let storageStatusTimer = null;
+let activeHelpTrigger = null;
+let helpTriggerSequence = 0;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -627,6 +637,12 @@ const els = {
   clearIssueFilters: document.getElementById("clear-issue-filters"),
   issueFilterSummary: document.getElementById("issue-filter-summary"),
   prepareReinspection: document.getElementById("prepare-reinspection"),
+  completeInspection: document.getElementById("complete-inspection"),
+  inspectionClosure: document.getElementById("inspection-closure"),
+  inspectionClosureForm: document.getElementById("inspection-closure-form"),
+  previousInspectionContent: document.getElementById("previous-inspection-content"),
+  trainingRecordForm: document.getElementById("training-record-form"),
+  trainingRecords: document.getElementById("training-records"),
   settingsForm: document.getElementById("settings-form"),
   settingsSummary: document.getElementById("settings-summary"),
   sourcesTableBody: document.getElementById("sources-table-body"),
@@ -640,9 +656,18 @@ const els = {
   saveCorrectionReport: document.getElementById("save-correction-report"),
   printCorrectionReport: document.getElementById("print-correction-report"),
   exportJson: document.getElementById("export-json"),
+  exportJsonLight: document.getElementById("export-json-light"),
   importJson: document.getElementById("import-json"),
   importJsonFile: document.getElementById("import-json-file"),
   exportCsv: document.getElementById("export-csv"),
+  requestPersistentStorage: document.getElementById("request-persistent-storage"),
+  storageStatus: document.getElementById("storage-status"),
+  appUpdateNotice: document.getElementById("app-update-notice"),
+  refreshApp: document.getElementById("refresh-app"),
+  contextHelpPopover: document.getElementById("context-help-popover"),
+  importDialog: document.getElementById("import-dialog"),
+  importModeForm: document.getElementById("import-mode-form"),
+  cancelImport: document.getElementById("cancel-import"),
   captureGps: document.getElementById("capture-gps"),
   installApp: document.getElementById("install-app"),
   accessibilityToggle: document.getElementById("accessibility-toggle"),
@@ -666,15 +691,29 @@ async function init() {
   switchView(viewFromHash());
   await hydrateStateFromDatabase();
   render();
+  void updateStorageStatus();
 }
 
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultState, ...JSON.parse(raw) } : structuredClone(defaultState);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    return raw ? migrateState(JSON.parse(raw)) : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
+}
+
+function migrateState(rawState) {
+  const migrated = { ...structuredClone(defaultState), ...(rawState || {}) };
+  migrated.inspections = Array.isArray(rawState?.inspections) ? rawState.inspections.map((inspection) => ({
+    documents: [], trainingRecords: [], closure: null, status: "draft", ...inspection,
+  })) : [];
+  migrated.issues = Array.isArray(rawState?.issues) ? rawState.issues.map((issue) => ({
+    evidence: [], verificationCompleted: false, reinspectionStatus: "נדרש אימות בשטח", ...issue,
+  })) : [];
+  migrated.auditLog = Array.isArray(rawState?.auditLog) ? rawState.auditLog : [];
+  migrated.schemaVersion = STATE_SCHEMA_VERSION;
+  return migrated;
 }
 
 function openDatabase() {
@@ -720,7 +759,7 @@ async function hydrateStateFromDatabase() {
   try {
     const stored = await readStateFromDatabase();
     if (stored) {
-      state = { ...structuredClone(defaultState), ...stored };
+      state = migrateState(stored);
       return;
     }
     await persistStateToDatabase(structuredClone(state));
@@ -752,6 +791,8 @@ function saveState(action) {
     // IndexedDB remains the primary storage if localStorage is unavailable.
   }
   void persistStateToDatabase(structuredClone(state));
+  window.clearTimeout(storageStatusTimer);
+  storageStatusTimer = window.setTimeout(() => void updateStorageStatus(), 350);
 }
 
 function bindEvents() {
@@ -779,6 +820,18 @@ function bindEvents() {
     saveState("draft_saved");
     renderSystemStatus("הטיוטה נשמרה מקומית.");
   });
+  els.completeInspection.addEventListener("click", () => {
+    const inspection = getActiveInspection();
+    if (!inspection) return;
+    els.inspectionClosure.classList.remove("hidden");
+    const closure = inspection.closure || {};
+    els.inspectionClosureForm.coverageStatement.value = closure.coverageStatement || inspection.scopeLimitations || "";
+    els.inspectionClosureForm.distributionNote.value = closure.distributionNote || "";
+    els.inspectionClosureForm.distributionApproved.checked = Boolean(closure.distributionApproved);
+    els.inspectionClosure.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  els.inspectionClosureForm.addEventListener("submit", completeInspection);
+  els.trainingRecordForm.addEventListener("submit", saveTrainingRecord);
   els.prepareReport.addEventListener("click", () => {
     reportInspectionId = state.activeInspectionId;
     renderCorrectionReport();
@@ -786,9 +839,17 @@ function bindEvents() {
   els.saveCorrectionReport.addEventListener("click", saveCorrectionReport);
   els.printCorrectionReport.addEventListener("click", printCorrectionReport);
   els.exportJson.addEventListener("click", exportJson);
+  els.exportJsonLight.addEventListener("click", () => exportJson({ includeMedia: false }));
   els.importJson.addEventListener("click", () => els.importJsonFile.click());
   els.importJsonFile.addEventListener("change", importJsonBackup);
   els.exportCsv.addEventListener("click", exportCsv);
+  els.requestPersistentStorage.addEventListener("click", requestPersistentStorage);
+  els.importModeForm.addEventListener("submit", applyImportedBackup);
+  els.cancelImport.addEventListener("click", () => {
+    pendingImportedBackup = null;
+    els.importDialog.close();
+  });
+  els.refreshApp.addEventListener("click", () => window.location.reload());
   els.captureGps.addEventListener("click", captureCurrentLocation);
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -813,11 +874,68 @@ function bindEvents() {
     button.addEventListener("click", () => updateAccessibilityPreference(button.dataset.accessibilityAction));
   });
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeContextHelp();
     if (event.altKey && event.key.toLowerCase() === "n") {
       event.preventDefault();
       toggleAccessibilityPanel();
     }
   });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".help-trigger") && !els.contextHelpPopover.contains(event.target)) closeContextHelp();
+  });
+}
+
+function initializeContextHelp(root = document) {
+  root.querySelectorAll("[data-help]").forEach((target) => {
+    if (target.dataset.helpReady) return;
+    target.dataset.helpReady = "true";
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "help-trigger";
+    trigger.textContent = "i";
+    trigger.setAttribute("aria-label", `הצג מידע: ${helpLabelFor(target)}`);
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.id = `help-trigger-${++helpTriggerSequence}`;
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleContextHelp(target, trigger);
+    });
+    const label = target.matches("label") ? target.querySelector(":scope > span") : null;
+    (label || target).insertAdjacentElement("afterend", trigger);
+  });
+}
+
+function helpLabelFor(target) {
+  return target.matches("label") ? target.querySelector(":scope > span")?.textContent?.trim() || "שדה" : target.textContent.trim();
+}
+
+function toggleContextHelp(target, trigger) {
+  if (activeHelpTrigger === trigger) {
+    closeContextHelp();
+    return;
+  }
+  closeContextHelp();
+  els.contextHelpPopover.textContent = target.dataset.help;
+  els.contextHelpPopover.classList.remove("hidden");
+  els.contextHelpPopover.setAttribute("aria-label", `מידע עבור ${helpLabelFor(target)}`);
+  const rect = trigger.getBoundingClientRect();
+  const width = Math.min(320, window.innerWidth - 32);
+  const left = Math.max(16, Math.min(rect.left, window.innerWidth - width - 16));
+  els.contextHelpPopover.style.width = `${width}px`;
+  els.contextHelpPopover.style.left = `${left}px`;
+  els.contextHelpPopover.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - 180)}px`;
+  trigger.setAttribute("aria-expanded", "true");
+  trigger.setAttribute("aria-controls", "context-help-popover");
+  trigger.setAttribute("aria-describedby", "context-help-popover");
+  activeHelpTrigger = trigger;
+}
+
+function closeContextHelp() {
+  if (!activeHelpTrigger) return;
+  activeHelpTrigger.setAttribute("aria-expanded", "false");
+  activeHelpTrigger.removeAttribute("aria-describedby");
+  activeHelpTrigger = null;
+  els.contextHelpPopover.classList.add("hidden");
 }
 
 function toggleAccessibilityPanel() {
@@ -845,10 +963,41 @@ function applyAccessibilityPreferences() {
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator && window.isSecureContext) {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {
+    navigator.serviceWorker.register("./service-worker.js").then((registration) => {
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        worker?.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            els.appUpdateNotice.classList.remove("hidden");
+          }
+        });
+      });
+    }).catch(() => {
       renderSystemStatus("לא ניתן היה להפעיל מטמון אופליין.");
     });
   }
+}
+
+async function requestPersistentStorage() {
+  if (!navigator.storage?.persist) {
+    renderSystemStatus("הדפדפן אינו תומך בבקשה לשמירה קבועה.");
+    return;
+  }
+  const granted = await navigator.storage.persist();
+  await updateStorageStatus();
+  renderSystemStatus(granted ? "הדפדפן אישר שמירה קבועה של נתוני האפליקציה." : "הדפדפן לא אישר שמירה קבועה. שמור גיבוי מלא בתדירות גבוהה.");
+}
+
+async function updateStorageStatus() {
+  if (!navigator.storage?.estimate) {
+    els.storageStatus.textContent = "הדפדפן אינו מספק נתוני נפח אחסון.";
+    return;
+  }
+  const [estimate, persisted] = await Promise.all([navigator.storage.estimate(), navigator.storage.persisted?.() || false]);
+  const used = formatBytes(estimate.usage || 0);
+  const quota = formatBytes(estimate.quota || 0);
+  const percent = estimate.quota ? Math.round(((estimate.usage || 0) / estimate.quota) * 100) : 0;
+  els.storageStatus.textContent = `אחסון מקומי: ${used} מתוך ${quota} (${percent}%). שמירה קבועה: ${persisted ? "מאושרת" : "טרם אושרה"}.`;
 }
 
 function populateInspectionForm() {
@@ -861,7 +1010,9 @@ function populateInspectionForm() {
 
 function populateSiteTypes() {
   const clusterId = els.inspectionForm.cluster.value;
-  const options = catalog.siteTypes.filter((item) => item.cluster === clusterId);
+  const options = catalog.siteTypes.filter(
+    (item) => item.cluster === clusterId && !catalog.checklistTemplates[item.id]?.some((checkItem) => checkItem.baselineOnly),
+  );
   els.inspectionForm.siteType.innerHTML = options
     .map((item) => `<option value="${item.id}">${item.name}</option>`)
     .join("");
@@ -952,14 +1103,18 @@ async function handleCreateInspection(event) {
 
 async function storeInspectionDocument(inspection, file) {
   try {
+    const preparedFile = await prepareLocalFile(file);
     inspection.documents.push({
       id: crypto.randomUUID(),
       type: inspection.documentType || "other",
       reference: inspection.documentReference || "",
-      name: file.name,
-      mediaType: file.type,
+      name: preparedFile.name,
+      originalName: file.name,
+      mediaType: preparedFile.type,
+      originalBytes: file.size,
+      storedBytes: preparedFile.size,
       addedAt: new Date().toISOString(),
-      dataUrl: await fileToDataUrl(file),
+      dataUrl: await fileToDataUrl(preparedFile),
     });
   } catch {
     renderSystemStatus(`לא ניתן לשמור את המסמך המקומי: ${file.name}`);
@@ -970,10 +1125,13 @@ function render() {
   renderSystemStatus();
   renderDashboard();
   renderActiveInspection();
+  renderPreviousInspectionComparison();
+  renderTrainingRecords();
   renderCorrectionReport();
   renderIssues();
   renderSettings();
   renderInformationSources();
+  initializeContextHelp();
 }
 
 function renderSystemStatus(message) {
@@ -1082,12 +1240,13 @@ function renderActiveInspection() {
   const inspection = state.inspections.find((item) => item.id === state.activeInspectionId);
   if (!inspection) {
     els.inspectionWorkspace.classList.add("hidden");
+    els.inspectionClosure.classList.add("hidden");
     return;
   }
 
   els.inspectionWorkspace.classList.remove("hidden");
   els.activeInspectionName.textContent = inspection.siteName;
-  els.activeInspectionMeta.textContent = `${siteTypeLabel(inspection.siteType)} · ${applicabilityProfileLabel(inspection.applicabilityProfile, inspection.cluster)} · ${inspection.address} · ${inspection.inspector}`;
+  els.activeInspectionMeta.textContent = `${siteTypeLabel(inspection.siteType)} · ${applicabilityProfileLabel(inspection.applicabilityProfile, inspection.cluster)} · ${inspection.address} · ${inspection.inspector} · ${inspection.status === "completed" ? "סקר הסתיים" : "טיוטה פעילה"}`;
   els.checklistContainer.innerHTML = "";
 
   inspection.checklist.forEach((item) => {
@@ -1243,6 +1402,97 @@ function renderActiveInspection() {
 
     els.checklistContainer.appendChild(card);
   });
+}
+
+function getActiveInspection() {
+  return state.inspections.find((inspection) => inspection.id === state.activeInspectionId) || null;
+}
+
+function renderPreviousInspectionComparison() {
+  const inspection = getActiveInspection();
+  if (!inspection) return;
+  const comparableInspections = state.inspections
+    .filter((item) => item.id !== inspection.id && normalizeSearchText(item.address) === normalizeSearchText(inspection.address) && new Date(item.createdAt) < new Date(inspection.createdAt))
+    .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
+  const previous = comparableInspections[0];
+  if (!previous) {
+    els.previousInspectionContent.innerHTML = `<div class="list-row">לא נמצאה ביקורת קודמת לאותה כתובת במכשיר זה.</div>`;
+    return;
+  }
+  const currentIssues = state.issues.filter((issue) => issue.inspectionId === inspection.id);
+  const previousIssues = state.issues.filter((issue) => issue.inspectionId === previous.id);
+  const rows = currentIssues.map((issue) => {
+    const prior = previousIssues.find((item) => (issue.elementId && item.elementId === issue.elementId) || item.checklistId === issue.checklistId);
+    return `<div class="list-row"><strong>${escapeHtml(issue.title)}</strong><span class="muted small">${prior ? `ביקורת קודמת: ${lifecycleLabel(prior.lifecycle)} · ${escapeHtml(prior.measuredValue || "ללא מדידה")}` : "לא נמצא ממצא תואם בביקורת הקודמת"}</span></div>`;
+  });
+  els.previousInspectionContent.innerHTML = `
+    <div class="list-row"><div><strong>${escapeHtml(previous.siteName)}</strong><div class="muted small">${formatDate(previous.createdAt)} · ${previousIssues.length} ליקויים מתועדים</div></div><button type="button" class="open-previous-inspection ghost" data-inspection-id="${previous.id}">פתח ביקורת קודמת</button></div>
+    ${rows.length ? rows.join("") : `<div class="list-row">טרם נוצרו ליקויים בביקורת הנוכחית להשוואה.</div>`}`;
+  els.previousInspectionContent.querySelector(".open-previous-inspection")?.addEventListener("click", (event) => {
+    state.activeInspectionId = event.currentTarget.dataset.inspectionId;
+    saveState("previous_inspection_opened");
+    render();
+  });
+}
+
+function completeInspection(event) {
+  event.preventDefault();
+  const inspection = getActiveInspection();
+  if (!inspection) return;
+  const formData = new FormData(event.currentTarget);
+  inspection.closure = {
+    coverageStatement: String(formData.get("coverageStatement") || "").trim(),
+    distributionNote: String(formData.get("distributionNote") || "").trim(),
+    distributionApproved: formData.get("distributionApproved") === "on",
+    completedAt: new Date().toISOString(),
+    completedBy: inspection.inspector,
+  };
+  inspection.status = "completed";
+  saveState("inspection_completed_for_distribution");
+  render();
+  renderSystemStatus("הסקר הסתיים ותועד להפצה מקומית. ליקויים פתוחים ממשיכים להיות מנוהלים בנפרד.");
+}
+
+async function saveTrainingRecord(event) {
+  event.preventDefault();
+  const inspection = getActiveInspection();
+  if (!inspection) return;
+  const formData = new FormData(event.currentTarget);
+  const record = {
+    id: crypto.randomUUID(),
+    date: String(formData.get("trainingDate") || ""),
+    role: String(formData.get("trainingRole") || "").trim(),
+    owner: String(formData.get("trainingOwner") || "").trim(),
+    details: String(formData.get("trainingDetails") || "").trim(),
+    createdAt: new Date().toISOString(),
+  };
+  const evidence = event.currentTarget.trainingEvidence.files[0];
+  if (evidence) {
+    const preparedFile = await prepareLocalFile(evidence);
+    record.evidence = {
+      name: preparedFile.name,
+      originalName: evidence.name,
+      mediaType: preparedFile.type,
+      originalBytes: evidence.size,
+      storedBytes: preparedFile.size,
+      dataUrl: await fileToDataUrl(preparedFile),
+    };
+  }
+  inspection.trainingRecords ||= [];
+  inspection.trainingRecords.unshift(record);
+  saveState("accessibility_training_record_saved");
+  event.currentTarget.reset();
+  renderTrainingRecords();
+  renderSystemStatus("תיעוד ההדרכה נשמר מקומית.");
+}
+
+function renderTrainingRecords() {
+  const inspection = getActiveInspection();
+  if (!inspection) return;
+  const records = inspection.trainingRecords || [];
+  els.trainingRecords.innerHTML = records.length
+    ? records.map((record) => `<div class="list-row"><div><strong>${escapeHtml(record.role || "הדרכת נגישות")}</strong><div class="muted small">${escapeHtml(record.date || "ללא תאריך")} · ${escapeHtml(record.owner || "אחראי לא צוין")} · ${escapeHtml(record.details || "ללא פירוט")}${record.evidence ? ` · ראיה: ${escapeHtml(record.evidence.name)}` : ""}</div></div></div>`).join("")
+    : `<div class="list-row">טרם נשמר תיעוד הדרכה לביקורת זו.</div>`;
 }
 
 function renderAiAssessment(issue, resultElement, controlsElement) {
@@ -1532,13 +1782,17 @@ function createOrUpdateIssue(inspection, checklistItem, draft, severity, photoFi
 
 async function storeIssueEvidence(issue, file, kind) {
   try {
+    const preparedFile = await prepareLocalFile(file);
     const evidence = {
       id: crypto.randomUUID(),
       kind,
-      fileName: file.name,
-      mediaType: file.type,
+      fileName: preparedFile.name,
+      originalFileName: file.name,
+      mediaType: preparedFile.type,
+      originalBytes: file.size,
+      storedBytes: preparedFile.size,
       capturedAt: new Date().toISOString(),
-      dataUrl: await fileToDataUrl(file),
+      dataUrl: await fileToDataUrl(preparedFile),
     };
     issue.evidence ||= [];
     issue.evidence.push(evidence);
@@ -1563,6 +1817,44 @@ function fileToDataUrl(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
+  });
+}
+
+async function prepareLocalFile(file) {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  try {
+    const image = await loadImageForCompression(file);
+    const maxSide = 1600;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, width, height);
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.78));
+    if (!blob || blob.size >= file.size) return file;
+    const compressedName = `${file.name.replace(/\.[^.]+$/, "") || "evidence"}.jpg`;
+    return new File([blob], compressedName, { type: "image/jpeg", lastModified: file.lastModified });
+  } catch {
+    return file;
+  }
+}
+
+function loadImageForCompression(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const source = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(source);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(source);
+      reject(new Error("image_load_failed"));
+    };
+    image.src = source;
   });
 }
 
@@ -1725,7 +2017,7 @@ function renderIssues() {
                   <label><span>מדידה חוזרת</span><input class="reinspection-value" type="text" value="${escapeHtml(issue.reinspectionValue || "")}" placeholder="ערך לאחר תיקון" /></label>
                   <label><span>כלי מדידה חוזרת</span><input class="reinspection-tool" type="text" value="${escapeHtml(issue.reinspectionTool || "")}" /></label>
                   <label class="full"><span>תמונת אחרי / ראיה חוזרת</span><input class="reinspection-photo" type="file" accept="image/*,video/*" capture="environment" /></label>
-                  <div class="full"><button type="button" class="verify-close" data-issue-id="${issue.id}">${issue.verificationCompleted ? "אימות הושלם" : "אשר אימות וסגור ליקוי"}</button></div>
+                  <div class="full"><button type="button" class="verify-close" data-issue-id="${issue.id}" data-help="סגירת ליקוי מתאפשרת רק לאחר תאריך אימות, שם מאמת, מדידה חוזרת וכלי מדידה. אפשר לצרף גם ראיית אחרי מקומית.">${issue.verificationCompleted ? "אימות הושלם" : "אשר אימות וסגור ליקוי"}</button></div>
                 </div>
               </details>
               <label class="full">
@@ -1973,8 +2265,35 @@ function resetData() {
   render();
 }
 
-function exportJson() {
-  downloadFile(`nagichek-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state, null, 2), "application/json");
+function exportJson({ includeMedia = true } = {}) {
+  const backup = createBackup(includeMedia);
+  const type = includeMedia ? "full" : "light";
+  downloadFile(`nagichek-backup-${type}-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(backup, null, 2), "application/json");
+  renderSystemStatus(includeMedia ? "נוצר גיבוי מלא הכולל ראיות ומסמכים מקומיים." : "נוצר גיבוי קל ללא קבצי מדיה.");
+}
+
+function createBackup(includeMedia) {
+  const backup = structuredClone(state);
+  backup.backupMetadata = {
+    exportedAt: new Date().toISOString(),
+    includeMedia,
+    appVersion: APP_VERSION,
+    schemaVersion: STATE_SCHEMA_VERSION,
+  };
+  if (includeMedia) return backup;
+  backup.inspections.forEach((inspection) => {
+    inspection.documents = (inspection.documents || []).map(({ dataUrl, ...document }) => ({ ...document, mediaExcluded: true }));
+    inspection.trainingRecords = (inspection.trainingRecords || []).map((record) => {
+      if (!record.evidence) return record;
+      const { dataUrl, ...evidence } = record.evidence;
+      return { ...record, evidence: { ...evidence, mediaExcluded: true } };
+    });
+  });
+  backup.issues.forEach((issue) => {
+    issue.evidence = (issue.evidence || []).map(({ dataUrl, ...evidence }) => ({ ...evidence, mediaExcluded: true }));
+    delete issue.photoDataUrl;
+  });
+  return backup;
 }
 
 async function importJsonBackup(event) {
@@ -1985,16 +2304,67 @@ async function importJsonBackup(event) {
     if (!Array.isArray(imported.inspections) || !Array.isArray(imported.issues)) {
       throw new Error("הקובץ אינו גיבוי תקין של נגיצ'ק.");
     }
-    state = { ...structuredClone(defaultState), ...imported };
-    reportInspectionId = null;
-    saveState("backup_imported");
-    render();
-    renderSystemStatus("הגיבוי יובא בהצלחה ונשמר במכשיר זה.");
+    pendingImportedBackup = migrateState(imported);
+    if (typeof els.importDialog.showModal === "function") {
+      els.importDialog.showModal();
+    } else if (window.confirm("לחץ אישור להחלפת כל הנתונים. לחץ ביטול למיזוג בטוח.")) {
+      applyBackup("replace");
+    } else {
+      applyBackup("merge");
+    }
   } catch (error) {
     renderSystemStatus(`ייבוא הגיבוי נכשל: ${error.message}`);
   } finally {
     event.target.value = "";
   }
+}
+
+function applyImportedBackup(event) {
+  event?.preventDefault();
+  const mode = new FormData(els.importModeForm).get("importMode") || "merge";
+  applyBackup(mode);
+  els.importDialog.close();
+}
+
+function applyBackup(mode) {
+  if (!pendingImportedBackup) return;
+  state = mode === "replace" ? pendingImportedBackup : mergeBackups(state, pendingImportedBackup);
+  reportInspectionId = null;
+  pendingImportedBackup = null;
+  saveState(mode === "replace" ? "backup_replaced" : "backup_merged");
+  render();
+  void updateStorageStatus();
+  renderSystemStatus(mode === "replace" ? "הגיבוי החליף את כל הנתונים המקומיים." : "הגיבוי מוזג: נתונים מקומיים בעלי אותו מזהה נשמרו למניעת דריסה.");
+}
+
+function mergeBackups(localState, importedState) {
+  const merged = migrateState(localState);
+  merged.inspections = mergeById(localState.inspections, importedState.inspections, mergeInspection);
+  merged.issues = mergeById(localState.issues, importedState.issues, mergeIssue);
+  merged.auditLog = mergeById(localState.auditLog, importedState.auditLog);
+  merged.activeInspectionId = localState.activeInspectionId || importedState.activeInspectionId || null;
+  return merged;
+}
+
+function mergeById(localItems = [], importedItems = [], mergeSameId = (localItem) => localItem) {
+  const importedById = new Map(importedItems.map((item) => [item.id, item]));
+  const localIds = new Set(localItems.map((item) => item.id));
+  return [...localItems.map((item) => mergeSameId(item, importedById.get(item.id))), ...importedItems.filter((item) => !localIds.has(item.id))];
+}
+
+function mergeInspection(localInspection, importedInspection) {
+  if (!importedInspection) return localInspection;
+  return {
+    ...importedInspection,
+    ...localInspection,
+    documents: mergeById(localInspection.documents, importedInspection.documents),
+    trainingRecords: mergeById(localInspection.trainingRecords, importedInspection.trainingRecords),
+  };
+}
+
+function mergeIssue(localIssue, importedIssue) {
+  if (!importedIssue) return localIssue;
+  return { ...importedIssue, ...localIssue, evidence: mergeById(localIssue.evidence, importedIssue.evidence) };
 }
 
 function captureCurrentLocation() {
@@ -2069,6 +2439,13 @@ function downloadFile(filename, content, mimeType) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`;
 }
 
 function formatDate(value) {

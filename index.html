@@ -52,7 +52,7 @@
               <p class="eyebrow">Dashboard</p>
               <h3 id="dashboard-title">תמונת מצב ארגונית</h3>
             </div>
-            <button id="prepare-reinspection" class="ghost">הכן ביקורת חוזרת</button>
+            <button id="prepare-reinspection" class="ghost" data-help="מציג ליקויים פתוחים שטרם אומתו בשטח, כדי להכין ביקורת חוזרת. סגירת ליקוי דורשת תאריך, מאמת, מדידה חוזרת וכלי מדידה.">הכן ביקורת חוזרת</button>
           </div>
           <div id="stats-grid" class="stats-grid"></div>
           <div class="panel-grid">
@@ -89,12 +89,12 @@
                 <span>סוג אתר/שירות</span>
                 <select name="siteType" required></select>
               </label>
-              <label>
+              <label data-help="קובע איזה מסלול משפטי ומקצועי יוצג לבדיקה. יש לבחור לפי סוג המקום, מועד ההיתר והמצב בפועל; במקרה של ספק יש לאמת מול גורם מוסמך.">
                 <span>מסלול תחולה</span>
                 <select name="applicabilityProfile" required></select>
               </label>
               <div class="full form-section-title">שער תחולה ומסמכי בסיס</div>
-              <label>
+              <label data-help="מסייע להבחין בין מבנה קיים, מבנה חדש ושינוי מהותי. הבחירה משפיעה על מסלול התחולה ודורשת אימות מול ההיתר והדין.">
                 <span>מצב המבנה</span>
                 <select name="buildingStatus"><option value="existing">בניין קיים</option><option value="new">בניין חדש</option><option value="major_change">שינוי מהותי בבניין קיים</option></select>
               </label>
@@ -122,7 +122,7 @@
                 <input type="text" name="inspector" placeholder="שם מלא" required />
               </label>
               <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredential" placeholder="אופציונלי" /></label>
-              <label><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
+              <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
               <label><span>החייב בנגישות</span><input type="text" name="liableParty" placeholder="שם בעלים / שוכר / רשות" /></label>
               <label><span>תפקיד החייב</span><input type="text" name="liableRole" placeholder="בעלים, מנהל נכס וכו׳" /></label>
               <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationId" /></label>
@@ -140,10 +140,10 @@
               </label>
               <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
               <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
-              <label><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
+              <label data-help="מסווג את המסמך המצורף כדי שיהיה אפשר להבין אם הוא היתר, פטור, התאמה חלופית או דוח קודם. יש לציין גם אסמכתה ותוקף כאשר קיימים."><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
               <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>
               <label class="full"><span>צירוף מסמכים מקומיים</span><input class="inspection-documents" type="file" multiple accept="image/*,application/pdf,.doc,.docx" /><small class="muted">המסמכים נשמרים במכשיר זה בלבד ונכללים בגיבוי JSON.</small></label>
-              <label class="full"><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
+              <label class="full" data-help="תעד במפורש אזורים, רכיבים או מסמכים שלא נבדקו ולמה. מידע זה יוצג בדוח כדי למנוע מצג של כיסוי מלא."><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
               <div class="full form-actions">
                 <button type="submit">צור ביקורת</button>
               </div>
@@ -160,9 +160,35 @@
                 <div class="toolbar">
                   <button id="prepare-report" class="ghost">הכן דוח תיקונים</button>
                   <button id="save-draft" class="ghost">שמור טיוטה</button>
+                  <button id="complete-inspection" data-help="פותח מסך סיום לתיעוד ההיקף הסופי, מה שלא נבדק ואישור ההפצה. ליקויים פתוחים נשארים לניהול גם לאחר סיום הסקר.">סיום סקר</button>
                 </div>
               </div>
               <div id="checklist-container" class="checklist"></div>
+            </section>
+            <section id="previous-inspection-comparison" class="panel" aria-labelledby="comparison-title">
+              <div class="panel-head"><div><p class="eyebrow">Comparison</p><h4 id="comparison-title">השוואה לביקורת קודמת</h4></div></div>
+              <div id="previous-inspection-content" class="stack-list"></div>
+            </section>
+            <section id="inspection-closure" class="panel hidden" aria-labelledby="closure-title">
+              <div class="panel-head"><div><p class="eyebrow">Closure</p><h4 id="closure-title">סיום ואישור הפצת סקר</h4><p class="muted small">הסקר יישאר מקומי. הסיום מתעד את גבולות הבדיקה ואינו מחליף אישור סטטוטורי.</p></div></div>
+              <form id="inspection-closure-form" class="form-grid">
+                <label class="full"><span>מה נבדק ומה לא נבדק</span><textarea name="coverageStatement" rows="3" required placeholder="ציין היקף סופי, אזורים שלא נבדקו וסיבת אי-הבדיקה"></textarea></label>
+                <label class="full"><span>סיכום מקצועי להפצה</span><textarea name="distributionNote" rows="3" required placeholder="למשל: הסקר מוכן להפצה פנימית, בכפוף לאימות תחולה מקצועי"></textarea></label>
+                <label class="full checkbox-line"><input name="distributionApproved" type="checkbox" required /> אני מאשר/ת שהיקף הבדיקה, המגבלות והסטטוס המקצועי נבדקו לפני הפצה.</label>
+                <div class="full form-actions"><button type="submit">אשר סיום סקר</button></div>
+              </form>
+            </section>
+            <section class="panel" aria-labelledby="training-title">
+              <div class="panel-head"><div><p class="eyebrow">Service</p><h4 id="training-title">תיעוד הדרכת נגישות</h4></div></div>
+              <form id="training-record-form" class="form-grid">
+                <label><span>תאריך הדרכה</span><input name="trainingDate" type="date" /></label>
+                <label><span>תפקיד / קהל יעד</span><input name="trainingRole" type="text" placeholder="למשל: צוות קבלה" /></label>
+                <label><span>מנחה / אחראי</span><input name="trainingOwner" type="text" /></label>
+                <label class="full"><span>משתתפים ותוכן ההדרכה</span><textarea name="trainingDetails" rows="2" placeholder="מספר משתתפים, נושאים והחלטות"></textarea></label>
+                <label class="full"><span>ראיה מצורפת (אופציונלי)</span><input name="trainingEvidence" type="file" accept="image/*,application/pdf" /></label>
+                <div class="full form-actions"><button type="submit" class="ghost">שמור תיעוד הדרכה</button></div>
+              </form>
+              <div id="training-records" class="stack-list"></div>
             </section>
             <section id="correction-report" class="panel hidden" aria-live="polite">
               <div class="panel-head">
@@ -186,7 +212,7 @@
               <h3 id="issues-title">ניהול ליקויים</h3>
             </div>
             <div class="toolbar">
-              <select id="status-filter" aria-label="סינון לפי סטטוס">
+              <select id="status-filter" aria-label="סינון לפי סטטוס" data-help="מסנן את תצוגת הליקויים בלבד. שינוי הסינון אינו משנה את סטטוס הליקוי עצמו.">
                 <option value="all">כל הסטטוסים</option>
                 <option value="open">פתוח</option>
                 <option value="assigned">הוקצה לטיפול</option>
@@ -195,7 +221,8 @@
                 <option value="closed">סגור</option>
               </select>
               <button id="export-json" class="ghost">ייצוא JSON</button>
-              <button id="import-json" class="ghost">ייבוא גיבוי</button>
+              <button id="export-json-light" class="ghost" data-help="יוצר גיבוי של הנתונים והטקסטים ללא תמונות, סרטונים או מסמכים. מתאים להעברה קלה בין מכשירים.">גיבוי ללא תמונות</button>
+              <button id="import-json" class="ghost" data-help="בייבוא תוצג בחירה: מיזוג בטוח שמוסיף רשומות חדשות, או החלפה מלאה של הנתונים המקומיים. צור גיבוי לפני החלפה.">ייבוא גיבוי</button>
               <input id="import-json-file" class="hidden" type="file" accept="application/json,.json" />
               <button id="export-csv" class="ghost">ייצוא CSV</button>
             </div>
@@ -216,7 +243,7 @@
                 <option value="overdue">באיחור</option>
               </select>
             </label>
-            <label>
+            <label data-help="מציג רק ליקויים שדורשים אימות בשטח לפני סגירה. אין לסגור ליקוי על סמך הצהרה או צילום בלבד.">
               <span>ביקורת חוזרת</span>
               <select id="reinspection-filter">
                 <option value="all">כל הליקויים</option>
@@ -276,6 +303,11 @@
               </ul>
               <div id="settings-summary" class="note-box"></div>
             </section>
+            <section class="panel" aria-labelledby="storage-title">
+              <div class="panel-head"><div><p class="eyebrow">Storage</p><h4 id="storage-title">שמירה מקומית וגיבוי</h4></div><button id="request-persistent-storage" class="ghost" type="button" data-help="מבקש מהדפדפן להגן יותר על הנתונים המקומיים מפני מחיקה אוטומטית. אישור הבקשה נתון לדפדפן ולשטח האחסון הפנוי.">הגן על האחסון המקומי</button></div>
+              <p id="storage-status" class="muted" aria-live="polite">בודק אחסון מקומי...</p>
+              <p class="muted small">תמונות נדחסות מקומית לפני שמירתן. שמור גיבוי מלא מדי פעם, ובחר גיבוי ללא תמונות להעברה קלה יותר.</p>
+            </section>
           </div>
         </section>
 
@@ -308,6 +340,17 @@
       </main>
     </div>
 
+    <div id="app-update-notice" class="app-update-notice hidden" role="status" aria-live="polite">זמינה גרסה חדשה של נגיצ'ק.<button id="refresh-app" type="button">עדכן כעת</button></div>
+    <div id="context-help-popover" class="context-help-popover hidden" role="dialog" aria-live="polite"></div>
+    <dialog id="import-dialog" aria-labelledby="import-dialog-title">
+      <form id="import-mode-form" method="dialog" class="form-grid">
+        <h3 id="import-dialog-title" class="full">אופן ייבוא הגיבוי</h3>
+        <p class="full muted">בחר פעולה מפורשת כדי למנוע דריסת נתונים במכשיר זה.</p>
+        <label class="full checkbox-line"><input type="radio" name="importMode" value="merge" checked /> מזג: הוסף ביקורות וליקויים חדשים; נתונים מקומיים קיימים עם אותו מזהה נשמרים.</label>
+        <label class="full checkbox-line"><input type="radio" name="importMode" value="replace" /> החלף הכול: מחק את הנתונים המקומיים והשתמש בגיבוי בלבד.</label>
+        <div class="full form-actions"><button id="confirm-import" type="submit">בצע ייבוא</button><button id="cancel-import" class="ghost" type="button">ביטול</button></div>
+      </form>
+    </dialog>
     <button id="accessibility-toggle" class="accessibility-toggle" type="button" aria-expanded="false" aria-controls="accessibility-panel">
       התאמות נגישות
     </button>
@@ -389,7 +432,7 @@
           <label><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" capture="environment" /></label>
           <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
           <div class="full ai-actions">
-            <button type="button" class="ghost analyze-photo">נתח צילום עם AI</button>
+            <button type="button" class="ghost analyze-photo" data-help="שולח את הצילום ל-OpenAI רק לאחר לחיצה מפורשת ורק אם הוזן מפתח לסשן זה. התוצאה היא הצעה לבדיקה אנושית ואינה קביעה מקצועית סופית.">נתח צילום עם AI</button>
             <p class="ai-result muted small" aria-live="polite"></p>
             <div class="ai-review-controls hidden" aria-live="polite"></div>
           </div>
