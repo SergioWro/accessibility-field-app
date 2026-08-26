@@ -89,6 +89,10 @@
                 <select name="siteType" required></select>
               </label>
               <label>
+                <span>מסלול תחולה</span>
+                <select name="applicabilityProfile" required></select>
+              </label>
+              <label>
                 <span>שם אתר</span>
                 <input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required />
               </label>
@@ -228,8 +232,9 @@
                 <thead>
                   <tr>
                     <th>מקור</th>
-                    <th>סוג</th>
+                    <th>מעמד</th>
                     <th>שימוש באפליקציה</th>
+                    <th>אימות</th>
                     <th>קישור</th>
                   </tr>
                 </thead>
@@ -259,6 +264,11 @@
         <button type="button" class="ghost" data-accessibility-action="reset">אפס התאמות</button>
       </div>
       <p class="muted small">קיצור מקלדת: Alt+N לפתיחה או סגירה. ניתן לדלג לתוכן המרכזי בעזרת Tab בתחילת העמוד.</p>
+      <details class="accessibility-declaration">
+        <summary>הצהרת נגישות</summary>
+        <p>האפליקציה כוללת ניווט מקלדת, קישור דילוג לתוכן, מיקוד נראה לעין, שינוי גודל טקסט, ניגודיות גבוהה והדגשת קישורים.</p>
+        <p>המערכת מיועדת לשימוש אישי ומקומי. טרם בוצעה בדיקת תאימות מקצועית מלאה לת״י 5568 ברמה AA; לפני מתן שירות לציבור נדרשת בדיקה מקצועית, השלמת פרטי קשר לפניות ופרסום הצהרת נגישות מאומתת.</p>
+      </details>
       <a class="accessibility-info-link" href="https://www.gov.il/he/pages/website_accessibility" target="_blank" rel="noopener">מידע רשמי על נגישות אתרי אינטרנט</a>
     </section>
 

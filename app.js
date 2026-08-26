@@ -1,7 +1,7 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 
 const catalog = {
   clusters: [
@@ -9,6 +9,50 @@ const catalog = {
     { id: "service", name: "נגישות השירות" },
     { id: "digital", name: "דיגיטל וטכנולוגיה" },
     { id: "special", name: "נגישות ייעודית" },
+  ],
+  applicabilityProfiles: [
+    {
+      id: "existing_public_building",
+      clusters: ["built"],
+      name: "מקום ציבורי בבניין קיים",
+      legalBases: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות למקום ציבורי שהוא בניין קיים), תשע״ב-2011"],
+    },
+    {
+      id: "new_public_building",
+      clusters: ["built"],
+      name: "בניין ציבורי חדש / תכנון ובנייה",
+      legalBases: ["תקנות התכנון והבנייה והוראות הנגישות לבניין ציבורי חדש"],
+    },
+    {
+      id: "new_residential",
+      clusters: ["built"],
+      name: "מבנה מגורים חדש / שטחים משותפים",
+      legalBases: ["תקנות נגישות למבנה מגורים חדש והוראות התכנון והבנייה החלות"],
+    },
+    {
+      id: "non_building_public_place",
+      clusters: ["built"],
+      name: "מקום ציבורי שאינו בניין",
+      legalBases: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות למקום ציבורי שאינו בניין)"],
+    },
+    {
+      id: "public_service",
+      clusters: ["service"],
+      name: "שירות ציבורי",
+      legalBases: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013"],
+    },
+    {
+      id: "internet_service",
+      clusters: ["digital"],
+      name: "שירות אינטרנט / אפליקציה",
+      legalBases: ["תקנות נגישות השירות, תקנות 35–35ו, ות״י 5568 ברמה AA לפי תחולה"],
+    },
+    {
+      id: "specialized_service",
+      clusters: ["special"],
+      name: "שירות או מקום ייעודי",
+      legalBases: ["תקנות נגישות השירות והוראות ייעודיות לפי ענף, שימוש ותחולה"],
+    },
   ],
   siteTypes: [
     { id: "building", cluster: "built", name: "מבנה ציבורי" },
@@ -203,6 +247,84 @@ const informationSources = [
   },
 ];
 
+informationSources.forEach((source) => {
+  source.category ||= source.type === "חקיקה" || source.type === "תקנות" ? "מחייב" : source.type === "תקן ישראלי" ? "תקן מופנה" : "הנחיה מקצועית";
+  source.verification ||= "נדרש אימות מהדורה ותחולה לפני שימוש.";
+});
+
+informationSources.push(
+  {
+    title: "מאגר חוקים, תקנות וצווים של נציבות שוויון זכויות לאנשים עם מוגבלות",
+    category: "מחייב / מאגר ניווט",
+    use: "נקודת כניסה לאיתור החקיקה, התקנות והצווים הרלוונטיים לעדכון שוטף.",
+    verification: "מאגר רשמי; יש לפתוח את הנוסח המקורי של כל פריט.",
+    url: "https://www.gov.il/he/Departments/DynamicCollectors/laws-and-regulations",
+  },
+  {
+    title: "תקנות התכנון והבנייה: הוראות נגישות לבניין ציבורי חדש",
+    category: "מחייב",
+    use: "מסלול תחולה לביקורת ותכנון של בניינים ציבוריים חדשים.",
+    verification: "יש לאמת מול היתר, מועד התחילה והנוסח העדכני.",
+    url: "https://www.gov.il/he/departments/topics/access_to_a_new_public_building",
+  },
+  {
+    title: "נגישות מבנה מגורים חדש",
+    category: "מחייב",
+    use: "מסלול תחולה למגורים חדשים ולשטחים המשותפים.",
+    verification: "יש לאמת מול מסלול הרישוי והוראות התכנון החלות.",
+    url: "https://www.gov.il/he/pages/new_residential_building_accessibility",
+  },
+  {
+    title: "תיקון נגישות שירותי אינטרנט: תקנות 35–35ו",
+    category: "מחייב",
+    use: "מסלול תחולה לבדיקות אתר, מסמכים דיגיטליים ואפליקציה.",
+    verification: "יש לאמת את הנוסח המעודכן, החריגים והפטורים.",
+    url: "https://www.gov.il/BlobFolder/guide/accommodating_service_providing_rules/he/sitedocs_service_acessibility_regulations.pdf",
+  },
+  {
+    title: "ת״י 5568 חלק 2: נגישות מסמכים דיגיטליים",
+    category: "תקן מופנה",
+    use: "בדיקת מסמכים המיוצאים או מועלים לשירות דיגיטלי.",
+    verification: "יש לצטט מספר חלק ומהדורה מאומתים ממכון התקנים.",
+    url: "",
+  },
+  {
+    title: "מינהל התכנון ומערכת רישוי זמין",
+    category: "הנחיה מקצועית",
+    use: "אימות הקשר תכנוני, היתר, הוראות מעבר ודרישות תכנון.",
+    verification: "יש להצליב מול היתר הבנייה והגורם התכנוני המוסמך.",
+    url: "https://www.gov.il/he/departments/guides/planning_guide",
+  },
+  {
+    title: "רשומות ומאגר החקיקה של הכנסת",
+    category: "מחייב / אימות",
+    use: "אימות פרסום, תחילה, תיקונים והוראות מעבר של חקיקה.",
+    verification: "מקור ראשוני לאימות נוסח ותאריך.",
+    url: "https://main.knesset.gov.il/activity/legislation/laws/pages/lawslaw.aspx",
+  },
+  {
+    title: "מכון התקנים הישראלי",
+    category: "תקן מופנה",
+    use: "אימות שם התקן, חלק, מהדורה ותיקונים לפני יישום ערך סף.",
+    verification: "התקן המלא מוגן בזכויות יוצרים; יש לאמת בעותק מורשה.",
+    url: "https://www.sii.org.il/",
+  },
+  {
+    title: "צווי נגישות, אכיפה ופסיקה",
+    category: "פרשנות ויישום",
+    use: "בחינת אכיפה, צווים, פטורים ופרשנות משפטית; אינו משמש לקביעה אוטומטית.",
+    verification: "נדרשת בדיקה משפטית עדכנית לפי נסיבות המקרה.",
+    url: "",
+  },
+  {
+    title: "דוחות מבקר המדינה ומרכז המחקר והמידע של הכנסת",
+    category: "פרשנות ויישום",
+    use: "מיפוי פערי יישום, נתונים ומגמות; אינו מקור נורמטיבי מחייב.",
+    verification: "יש לציין תאריך פרסום ומגבלות המחקר.",
+    url: "https://www.mevaker.gov.il/",
+  },
+);
+
 catalog.siteTypes.forEach((siteType) => {
   if (!catalog.checklistTemplates[siteType.id]) {
     catalog.checklistTemplates[siteType.id] = createBaselineChecklist(siteType);
@@ -345,7 +467,10 @@ function bindEvents() {
   window.addEventListener("hashchange", () => switchView(viewFromHash()));
 
   els.inspectionForm.addEventListener("submit", handleCreateInspection);
-  els.inspectionForm.cluster.addEventListener("change", populateSiteTypes);
+  els.inspectionForm.cluster.addEventListener("change", () => {
+    populateSiteTypes();
+    populateApplicabilityProfiles();
+  });
   els.statusFilter.addEventListener("change", renderIssues);
   els.settingsForm.addEventListener("submit", handleSaveSettings);
   els.seedDemo.addEventListener("click", seedDemoData);
@@ -427,6 +552,7 @@ function populateInspectionForm() {
     .map((cluster) => `<option value="${cluster.id}">${cluster.name}</option>`)
     .join("");
   populateSiteTypes();
+  populateApplicabilityProfiles();
 }
 
 function populateSiteTypes() {
@@ -434,6 +560,14 @@ function populateSiteTypes() {
   const options = catalog.siteTypes.filter((item) => item.cluster === clusterId);
   els.inspectionForm.siteType.innerHTML = options
     .map((item) => `<option value="${item.id}">${item.name}</option>`)
+    .join("");
+}
+
+function populateApplicabilityProfiles() {
+  const clusterId = els.inspectionForm.cluster.value;
+  const options = catalog.applicabilityProfiles.filter((profile) => profile.clusters.includes(clusterId));
+  els.inspectionForm.applicabilityProfile.innerHTML = options
+    .map((profile) => `<option value="${profile.id}">${profile.name}</option>`)
     .join("");
 }
 
@@ -460,6 +594,7 @@ function handleCreateInspection(event) {
     id: crypto.randomUUID(),
     cluster: formData.get("cluster"),
     siteType,
+    applicabilityProfile: formData.get("applicabilityProfile"),
     siteName: formData.get("siteName"),
     address: formData.get("address"),
     inspector: formData.get("inspector"),
@@ -558,7 +693,7 @@ function renderActiveInspection() {
 
   els.inspectionWorkspace.classList.remove("hidden");
   els.activeInspectionName.textContent = inspection.siteName;
-  els.activeInspectionMeta.textContent = `${siteTypeLabel(inspection.siteType)} · ${inspection.address} · ${inspection.inspector}`;
+  els.activeInspectionMeta.textContent = `${siteTypeLabel(inspection.siteType)} · ${applicabilityProfileLabel(inspection.applicabilityProfile, inspection.cluster)} · ${inspection.address} · ${inspection.inspector}`;
   els.checklistContainer.innerHTML = "";
 
   inspection.checklist.forEach((item) => {
@@ -906,6 +1041,8 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
 function legalBasesForInspection(inspection, checklistItem) {
   const directStandard = checklistItem.sourceRefs.find((source) => source.startsWith('ת"י 1918'));
   const bases = ["חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998"];
+  const profile = getApplicabilityProfile(inspection.applicabilityProfile, inspection.cluster);
+  if (profile) bases.push(...profile.legalBases);
   if (directStandard) bases.push(directStandard);
   if (inspection.cluster === "built") bases.push('ת"י 1918 והתקנות החלות לפי סוג המקום והמסלול');
   if (inspection.siteType === "bus_stop") {
@@ -1024,10 +1161,12 @@ function renderInformationSources() {
     const row = document.createElement("tr");
     const title = document.createElement("td");
     title.textContent = source.title;
-    const type = document.createElement("td");
-    type.textContent = source.type;
+    const category = document.createElement("td");
+    category.textContent = source.category;
     const use = document.createElement("td");
     use.textContent = source.use;
+    const verification = document.createElement("td");
+    verification.textContent = source.verification;
     const link = document.createElement("td");
     if (source.url) {
       const anchor = document.createElement("a");
@@ -1039,7 +1178,7 @@ function renderInformationSources() {
     } else {
       link.textContent = "מופיע במסמך ה-SRD המצורף";
     }
-    row.append(title, type, use, link);
+    row.append(title, category, use, verification, link);
     els.sourcesTableBody.append(row);
   });
 }
@@ -1113,6 +1252,14 @@ function addDays(days) {
 
 function siteTypeLabel(id) {
   return catalog.siteTypes.find((item) => item.id === id)?.name || id;
+}
+
+function getApplicabilityProfile(id, clusterId) {
+  return catalog.applicabilityProfiles.find((profile) => profile.id === id) || catalog.applicabilityProfiles.find((profile) => profile.clusters.includes(clusterId));
+}
+
+function applicabilityProfileLabel(id, clusterId) {
+  return getApplicabilityProfile(id, clusterId)?.name || "מסלול תחולה טרם נבחר";
 }
 
 function statusText(status) {

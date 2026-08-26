@@ -431,6 +431,18 @@ body:has(.view:target) .view.is-active {
   text-decoration: underline;
 }
 
+.accessibility-declaration {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.accessibility-declaration summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
 body.accessibility-high-contrast {
   --bg: #ffffff;
   --surface: #ffffff;
