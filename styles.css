@@ -254,6 +254,20 @@ body:has(.view:target) .view.is-active {
   padding: 0.75rem 0.9rem;
 }
 
+.field-with-action {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.field-with-action input {
+  min-width: 0;
+}
+
+.field-with-action button {
+  white-space: nowrap;
+}
+
 .full {
   grid-column: 1 / -1;
 }

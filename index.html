@@ -106,7 +106,10 @@
               </label>
               <label>
                 <span>מיקום GPS</span>
-                <input type="text" name="gps" placeholder="31.778, 35.235" />
+                <div class="field-with-action">
+                  <input type="text" name="gps" placeholder="31.778, 35.235" />
+                  <button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button>
+                </div>
               </label>
               <label class="full">
                 <span>הערות פתיחה</span>
@@ -140,6 +143,7 @@
                   <p class="muted small">סדר פעולות מוצע. המקורות דורשים אימות תחולה מקצועי לפני ביצוע.</p>
                 </div>
                 <button id="save-correction-report">שמור דוח תיקונים</button>
+                <button id="print-correction-report" class="ghost">הדפס / שמור PDF</button>
               </div>
               <div id="correction-report-content" class="stack-list"></div>
             </section>
@@ -162,6 +166,8 @@
                 <option value="closed">סגור</option>
               </select>
               <button id="export-json" class="ghost">ייצוא JSON</button>
+              <button id="import-json" class="ghost">ייבוא גיבוי</button>
+              <input id="import-json-file" class="hidden" type="file" accept="application/json,.json" />
               <button id="export-csv" class="ghost">ייצוא CSV</button>
             </div>
           </div>
@@ -308,7 +314,8 @@
           </label>
           <label>
             <span>צילום / קובץ</span>
-            <input type="file" class="issue-photo" accept="image/*" />
+            <input type="file" class="issue-photo" accept="image/*" capture="environment" />
+            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר לצילום ישיר.</small>
           </label>
           <div class="full ai-actions">
             <button type="button" class="ghost analyze-photo">נתח צילום עם AI</button>

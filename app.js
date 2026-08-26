@@ -1,7 +1,11 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
+const DATABASE_NAME = "accessibility-field-app";
+const DATABASE_VERSION = 1;
+const STATE_STORE_NAME = "state";
+const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.3.1";
+const APP_VERSION = "1.4.0";
 
 const catalog = {
   clusters: [
@@ -373,6 +377,7 @@ const defaultState = {
 let state = loadState();
 let reportInspectionId = null;
 let accessibilityPreferences = loadAccessibilityPreferences();
+let databasePromise = null;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -406,8 +411,12 @@ const els = {
   correctionReportDate: document.getElementById("correction-report-date"),
   correctionReportContent: document.getElementById("correction-report-content"),
   saveCorrectionReport: document.getElementById("save-correction-report"),
+  printCorrectionReport: document.getElementById("print-correction-report"),
   exportJson: document.getElementById("export-json"),
+  importJson: document.getElementById("import-json"),
+  importJsonFile: document.getElementById("import-json-file"),
   exportCsv: document.getElementById("export-csv"),
+  captureGps: document.getElementById("capture-gps"),
   installApp: document.getElementById("install-app"),
   accessibilityToggle: document.getElementById("accessibility-toggle"),
   accessibilityPanel: document.getElementById("accessibility-panel"),
@@ -418,9 +427,9 @@ const els = {
 
 let installPromptEvent = null;
 
-init();
+void init();
 
-function init() {
+async function init() {
   els.appVersion.textContent = `גרסה ${APP_VERSION}`;
   applyAccessibilityPreferences();
   populateInspectionForm();
@@ -428,6 +437,8 @@ function init() {
   registerServiceWorker();
   render();
   switchView(viewFromHash());
+  await hydrateStateFromDatabase();
+  render();
 }
 
 function loadState() {
@@ -436,6 +447,58 @@ function loadState() {
     return raw ? { ...defaultState, ...JSON.parse(raw) } : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
+  }
+}
+
+function openDatabase() {
+  if (databasePromise) return databasePromise;
+  databasePromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(STATE_STORE_NAME)) {
+        request.result.createObjectStore(STATE_STORE_NAME, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return databasePromise;
+}
+
+async function readStateFromDatabase() {
+  const database = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STATE_STORE_NAME, "readonly");
+    const request = transaction.objectStore(STATE_STORE_NAME).get(STATE_RECORD_ID);
+    request.onsuccess = () => resolve(request.result?.value || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function persistStateToDatabase(snapshot) {
+  try {
+    const database = await openDatabase();
+    await new Promise((resolve, reject) => {
+      const transaction = database.transaction(STATE_STORE_NAME, "readwrite");
+      transaction.objectStore(STATE_STORE_NAME).put({ id: STATE_RECORD_ID, value: snapshot, updatedAt: new Date().toISOString() });
+      transaction.oncomplete = resolve;
+      transaction.onerror = () => reject(transaction.error);
+    });
+  } catch {
+    // The app keeps a localStorage fallback for browsers that block IndexedDB.
+  }
+}
+
+async function hydrateStateFromDatabase() {
+  try {
+    const stored = await readStateFromDatabase();
+    if (stored) {
+      state = { ...structuredClone(defaultState), ...stored };
+      return;
+    }
+    await persistStateToDatabase(structuredClone(state));
+  } catch {
+    renderSystemStatus("IndexedDB אינו זמין בדפדפן זה; נשמר עותק מקומי חלופי.");
   }
 }
 
@@ -456,7 +519,12 @@ function saveState(action) {
       at: new Date().toISOString(),
     });
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // IndexedDB remains the primary storage if localStorage is unavailable.
+  }
+  void persistStateToDatabase(structuredClone(state));
 }
 
 function bindEvents() {
@@ -484,8 +552,12 @@ function bindEvents() {
     renderCorrectionReport();
   });
   els.saveCorrectionReport.addEventListener("click", saveCorrectionReport);
+  els.printCorrectionReport.addEventListener("click", printCorrectionReport);
   els.exportJson.addEventListener("click", exportJson);
+  els.importJson.addEventListener("click", () => els.importJsonFile.click());
+  els.importJsonFile.addEventListener("change", importJsonBackup);
   els.exportCsv.addEventListener("click", exportCsv);
+  els.captureGps.addEventListener("click", captureCurrentLocation);
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     installPromptEvent = event;
@@ -760,9 +832,11 @@ function renderActiveInspection() {
       }
     });
 
-    photoInput.addEventListener("change", () => {
+    photoInput.addEventListener("change", async () => {
       if (item.reviewStatus === "fail") {
         createOrUpdateIssue(inspection, item, descriptionInput.value, severitySelect.value, photoInput.files[0]);
+        const issue = state.issues.find((entry) => entry.id === item.issueId);
+        if (issue && photoInput.files[0]) await storeIssuePhoto(issue, photoInput.files[0]);
         saveState("issue_photo_attached");
       }
     });
@@ -929,6 +1003,41 @@ function saveCorrectionReport() {
   downloadFile(`correction-report-${inspection.siteName.replaceAll(/[^\p{L}\p{N}]+/gu, "-")}.md`, lines.join("\n"), "text/markdown;charset=utf-8");
 }
 
+function printCorrectionReport() {
+  const inspection = state.inspections.find((item) => item.id === (reportInspectionId || state.activeInspectionId));
+  if (!inspection) {
+    renderSystemStatus("יש לפתוח ביקורת ולהכין דוח תיקונים לפני הדפסה.");
+    return;
+  }
+  const issues = state.issues
+    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
+  const rows = issues.length
+    ? issues
+        .map(
+          (issue, index) => `
+            <article>
+              <h2>${index + 1}. ${escapeHtml(issue.title)}</h2>
+              <p><strong>עדיפות:</strong> ${escapeHtml(correctionPriority(issue.severity))}</p>
+              <p><strong>לביצוע:</strong> ${escapeHtml(issue.aiAssessment?.recommendedAction || issue.description || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
+              <p><strong>מה צריך להיות:</strong> ${escapeHtml(measurementTargetsForIssue(inspection, issue))}</p>
+              <p><strong>חוק / תקנה / תקן מוצעים לבדיקה:</strong> ${escapeHtml(issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; "))}</p>
+            </article>`,
+        )
+        .join("")
+    : "<p>אין ליקויים פתוחים בביקורת זו.</p>";
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    renderSystemStatus("הדפדפן חסם את חלון ההדפסה. אפשר חלונות קופצים ונסה שוב.");
+    return;
+  }
+  printWindow.opener = null;
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח לתיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p>${rows}<p class="note">המקורות המוצגים הם בסיס מוצע לבדיקה. יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p></body></html>`);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => printWindow.print(), 250);
+}
+
 function correctionPriority(severity) {
   const labels = {
     blocking: "מיידי - מונע גישה",
@@ -1001,6 +1110,25 @@ function createOrUpdateIssue(inspection, checklistItem, description, severity, p
     issue.severity = severity;
     issue.photoName = photoName;
   }
+}
+
+async function storeIssuePhoto(issue, file) {
+  try {
+    issue.photoDataUrl = await fileToDataUrl(file);
+    issue.photoCapturedAt = new Date().toISOString();
+    saveState("issue_photo_saved_locally");
+  } catch {
+    renderSystemStatus("הצילום צורף בשם הקובץ, אך לא ניתן היה לשמור אותו מקומית.");
+  }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
@@ -1261,7 +1389,56 @@ function resetData() {
 }
 
 function exportJson() {
-  downloadFile("accessibility-field-data.json", JSON.stringify(state, null, 2), "application/json");
+  downloadFile(`nagichek-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(state, null, 2), "application/json");
+}
+
+async function importJsonBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const imported = JSON.parse(await file.text());
+    if (!Array.isArray(imported.inspections) || !Array.isArray(imported.issues)) {
+      throw new Error("הקובץ אינו גיבוי תקין של נגיצ'ק.");
+    }
+    state = { ...structuredClone(defaultState), ...imported };
+    reportInspectionId = null;
+    saveState("backup_imported");
+    render();
+    renderSystemStatus("הגיבוי יובא בהצלחה ונשמר במכשיר זה.");
+  } catch (error) {
+    renderSystemStatus(`ייבוא הגיבוי נכשל: ${error.message}`);
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function captureCurrentLocation() {
+  if (!navigator.geolocation) {
+    renderSystemStatus("הדפדפן במכשיר זה אינו תומך בקבלת GPS.");
+    return;
+  }
+  els.captureGps.disabled = true;
+  els.captureGps.textContent = "מאתר מיקום...";
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      els.inspectionForm.gps.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)} (דיוק משוער ±${Math.round(accuracy)} מ׳)`;
+      els.captureGps.disabled = false;
+      els.captureGps.textContent = "עדכן מיקום";
+      renderSystemStatus("המיקום התקבל. הוא יישמר בעת יצירת הביקורת.");
+    },
+    (error) => {
+      els.captureGps.disabled = false;
+      els.captureGps.textContent = "קבל מיקום נוכחי";
+      const messages = {
+        1: "לא ניתן אישור לשימוש במיקום.",
+        2: "לא ניתן לקבוע מיקום כרגע.",
+        3: "תם הזמן לקבלת מיקום.",
+      };
+      renderSystemStatus(messages[error.code] || "קבלת המיקום נכשלה.");
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 },
+  );
 }
 
 function exportCsv() {
