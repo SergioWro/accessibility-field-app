@@ -1,7 +1,7 @@
 const STORAGE_KEY = "accessibility-field-app-state-v1";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 
 const catalog = {
   clusters: [
@@ -140,6 +140,69 @@ const catalog = {
   },
 };
 
+const informationSources = [
+  {
+    title: "SRD נגישות בשטח v3.0",
+    type: "מסמך דרישות",
+    use: "מבנה המערכת, קטגוריות הביקורת, צ׳קליסטים, זרימות עבודה וערכי סף מאומתים.",
+    url: "",
+  },
+  {
+    title: "חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998",
+    type: "חקיקה",
+    use: "מסגרת החובה והשירות הנגיש.",
+    url: "https://www.nevo.co.il/law_html/law01/p214m2_001.htm",
+  },
+  {
+    title: "תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013",
+    type: "תקנות",
+    use: "נגישות השירות, מידע, דיגיטל, שירות עצמי ופרסום הסדרי נגישות.",
+    url: "https://www.nevo.co.il/law_html/law01/500_865.htm",
+  },
+  {
+    title: "תקנות נגישות למקום ציבורי שהוא בניין קיים, תשע״ב-2011",
+    type: "תקנות",
+    use: "בדיקות במבנים קיימים ותנאי תחולה.",
+    url: "https://www.nevo.co.il/law_html/law00/117041.htm",
+  },
+  {
+    title: "תקנות נגישות לשירותי תחבורה ציבורית",
+    type: "תקנות",
+    use: "תחנות אוטובוס, רחבות היערכות, שילוט ומרחבי המתנה.",
+    url: "https://he.wikisource.org/wiki/%D7%AA%D7%A7%D7%A0%D7%95%D7%AA_%D7%A9%D7%95%D7%95%D7%99%D7%95%D7%9F_%D7%96%D7%9B%D7%95%D7%99%D7%95%D7%AA_%D7%9C%D7%90%D7%A0%D7%A9%D7%99%D7%9D_%D7%A2%D7%9D_%D7%9E%D7%95%D7%92%D7%91%D7%9C%D7%95%D7%AA_(%D7%94%D7%A1%D7%93%D7%A8%D7%AA_%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA_%D7%9C%D7%A9%D7%99%D7%A8%D7%95%D7%AA%D7%99_%D7%AA%D7%97%D7%91%D7%95%D7%A8%D7%94_%D7%A6%D7%99%D7%91%D7%95%D7%A8%D7%99%D7%AA)",
+  },
+  {
+    title: "ת״י 1918 חלקים 1, 2 ו-3.1",
+    type: "תקן ישראלי",
+    use: "נגישות הסביבה הבנויה, חוץ ופנים המבנה; ערכי סף פיזיים לפי תחולה.",
+    url: "https://www.gov.il/BlobFolder/legalinfo/israeli_accessibility_standards/he/sitedocs_teken1918helek2_oct12_amendment.pdf",
+  },
+  {
+    title: "משרד התחבורה: הנחיות נגישות לתחנות אוטובוס 2025",
+    type: "הנחיה מקצועית",
+    use: "יעדי המדידה המורחבים בתחנות אוטובוס.",
+    url: "",
+  },
+  {
+    title: "נציבות שוויון זכויות: טופס בדיקת נגישות עצמית לעסקים קטנים",
+    type: "הנחיה רשמית",
+    use: "ערכי סף מותני-תחולה לעסקים קיימים.",
+    url: "https://www.gov.il/he/pages/accessible_service_intro_regs_procdure_timetables",
+  },
+  {
+    title: "ת״י 5568: קווים מנחים לנגישות תכנים באינטרנט",
+    type: "תקן ישראלי",
+    use: "הנחיות נגישות למסכי האפליקציה בדפדפן ולרכיב התאמות הנגישות.",
+    url: "https://www.gov.il/BlobFolder/generalpage/accessibility_statement/he/5568.pdf",
+  },
+  {
+    title: "נציבות שוויון זכויות: נגישות אתרי אינטרנט",
+    type: "מדריך ממשלתי",
+    use: "מידע עדכני על חובות נגישות לשירותי אינטרנט.",
+    url: "https://www.gov.il/he/pages/website_accessibility",
+  },
+];
+
 catalog.siteTypes.forEach((siteType) => {
   if (!catalog.checklistTemplates[siteType.id]) {
     catalog.checklistTemplates[siteType.id] = createBaselineChecklist(siteType);
@@ -197,6 +260,7 @@ const els = {
     inspection: document.getElementById("inspection-view"),
     issues: document.getElementById("issues-view"),
     settings: document.getElementById("settings-view"),
+    sources: document.getElementById("sources-view"),
   },
   systemStatus: document.getElementById("system-status"),
   statsGrid: document.getElementById("stats-grid"),
@@ -211,6 +275,7 @@ const els = {
   statusFilter: document.getElementById("status-filter"),
   settingsForm: document.getElementById("settings-form"),
   settingsSummary: document.getElementById("settings-summary"),
+  sourcesTableBody: document.getElementById("sources-table-body"),
   seedDemo: document.getElementById("seed-demo"),
   clearData: document.getElementById("clear-data"),
   saveDraft: document.getElementById("save-draft"),
@@ -426,6 +491,7 @@ function render() {
   renderCorrectionReport();
   renderIssues();
   renderSettings();
+  renderInformationSources();
 }
 
 function renderSystemStatus(message) {
@@ -950,6 +1016,32 @@ function renderSettings() {
     Reasoning: ${state.settings.reasoningModel}<br />
     סף ודאות: ${state.settings.confidenceThreshold}
   `;
+}
+
+function renderInformationSources() {
+  els.sourcesTableBody.replaceChildren();
+  informationSources.forEach((source) => {
+    const row = document.createElement("tr");
+    const title = document.createElement("td");
+    title.textContent = source.title;
+    const type = document.createElement("td");
+    type.textContent = source.type;
+    const use = document.createElement("td");
+    use.textContent = source.use;
+    const link = document.createElement("td");
+    if (source.url) {
+      const anchor = document.createElement("a");
+      anchor.href = source.url;
+      anchor.target = "_blank";
+      anchor.rel = "noopener";
+      anchor.textContent = "פתיחת מקור";
+      link.append(anchor);
+    } else {
+      link.textContent = "מופיע במסמך ה-SRD המצורף";
+    }
+    row.append(title, type, use, link);
+    els.sourcesTableBody.append(row);
+  });
 }
 
 function seedDemoData() {

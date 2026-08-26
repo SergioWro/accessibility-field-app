@@ -333,6 +333,34 @@ body:has(.view:target) .view.is-active {
   gap: 0.8rem;
 }
 
+.source-table-wrap {
+  overflow-x: auto;
+}
+
+.source-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  text-align: right;
+}
+
+.source-table th,
+.source-table td {
+  padding: 0.85rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.source-table th {
+  color: var(--primary);
+  background: var(--surface-strong);
+}
+
+.source-table a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
 .issue-card,
 .list-row {
   border: 1px solid var(--line);
