@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.9.1";
+const APP_VERSION = "1.11.1";
 
 const catalog = {
   clusters: [
@@ -64,6 +64,9 @@ const catalog = {
     { id: "building", cluster: "built", name: "מבנה ציבורי" },
     { id: "open_space", cluster: "built", name: "שטח ציבורי פתוח" },
     { id: "sidewalk", cluster: "built", name: "מדרכה / דרך נגישה" },
+    { id: "crossing", cluster: "built", name: "מעבר חציה וצומת" },
+    { id: "road_environment", cluster: "built", name: "כביש, שפת מדרכה וסביבת דרך" },
+    { id: "sensory_public_space", cluster: "built", name: "נגישות חושית במרחב הציבורי" },
     { id: "bus_stop", cluster: "built", name: "תחנת אוטובוס" },
     { id: "pedestrian_bridge", cluster: "built", name: "גשר הולכי רגל" },
     { id: "beach", cluster: "built", name: "חוף רחצה" },
@@ -201,7 +204,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.9",
+    title: "SRD נגיצ'ק v3.13",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -338,6 +341,20 @@ informationSources.push(
     verification: "יש לציין תאריך פרסום ומגבלות המחקר.",
     url: "https://www.mevaker.gov.il/",
   },
+  {
+    title: "נציבות שוויון זכויות: הנחיות חירום כלליות לאנשים עם מוגבלות",
+    category: "הנחיה מקצועית",
+    use: "צ'קליסט מרחב מוגן ומקלט: דרך הגעה, שילוט, פינוי מכשולים, דלת, פתחי מילוט, תאורה ומידע חירום.",
+    verification: "הנחיה מעשית; יש להצליב מול הנחיות פיקוד העורף, ייעוד המקום ותוכנית החירום המקומית.",
+    url: "https://www.gov.il/he/pages/general-emergency-disabilities?chapterIndex=4",
+  },
+  {
+    title: "נציבות שוויון זכויות: דרך נגישה ומרחב ציבורי",
+    category: "הנחיה מקצועית",
+    use: "צ'קליסט נגישות חושית במרחב הציבורי: רצף, מכשולים, ניגודיות, הכוונה ושינויי גובה.",
+    verification: "יש להצליב מול ת״י 1918, הוראות רשות הדרך והתחולה הספציפית.",
+    url: "https://www.gov.il/he/pages/accessible_routes_existing_buildings?chapterindex=5docx",
+  },
 );
 
 catalog.siteTypes.forEach((siteType) => {
@@ -378,7 +395,12 @@ function surveyItem(id, title, threshold, sourceRefs, measurementUnit = "") {
 }
 
 const requirementRegistry = {
-  "B-ROUTE-WIDTH": { source: 'ת"י 1918 חלק 2', section: "2.1.4", edition: "2012; אימות מהדורה נדרש", expected: "רוחב חופשי 130 ס״מ לפחות במסלול שעליו התקן חל", exceptions: "היצרויות ותחולת מבנה קיים מחייבות בדיקה פרטנית" },
+  "PW-ROUTE-WIDTH": { source: 'ת"י 1918 חלק 2', section: "2.6.1", edition: "2012; אימות מהדורה נדרש", expected: "רוחב חופשי 130 ס״מ לפחות; בהיצרות מקומית עד 110 ס״מ לאורך עד 500 ס״מ, ומרחק של 500 ס״מ לפחות בין היצרויות עוקבות", exceptions: "יש לאמת תחולה, חריגים ותנאי מקום קיים מול המקור העדכני", numericRule: { operator: "min", value: 130, unit: "ס״מ", label: "רוחב חופשי" } },
+  "PW-ROUTE-SLOPE": { source: 'ת"י 1918 חלק 2', section: "2.6.3", edition: "2012; אימות מהדורה נדרש", expected: "שיפוע אורכי עד 5% ושיפוע רוחבי עד 2%", exceptions: "שינויי מפלס, כבש וחריגים דורשים בדיקת סעיף ייעודי" },
+  "PW-HEADROOM": { source: 'ת"י 1918 חלק 2', section: "2.6.1", edition: "2012; אימות מהדורה נדרש", expected: "לא תתאפשר חדירת עצמים לתחום רצועת ההליכה מתחת לגובה 220 ס״מ", exceptions: "יש לאמת את תחולת הדרישה לפי המקום והמהדורה", numericRule: { operator: "min", value: 220, unit: "ס״מ", label: "גובה חופשי" } },
+  "PW-CROSSING-LEVEL": { source: 'ת"י 1918 חלק 2', section: "2.6.4.1", edition: "2012; אימות מהדורה נדרש", expected: "במפגש מדרכה-כביש במקום חציה לא יהיה הפרש גובה", exceptions: "יש לבדוק תנאי אתר, פתרון הנמכה והוראות רשות הדרך", numericRule: { operator: "max", value: 0, unit: "ס״מ", label: "הפרש גובה" } },
+  "PW-CROSSING-WARNING": { source: 'ת"י 1918 חלק 2 ות״י 1918 חלק 6', section: "2.6.4.1", edition: "2012; אימות מהדורה נדרש", expected: "סימן אזהרה ברוחב 60 ס״מ לפחות, בניגוד חזותי ומישושי", exceptions: "יש לאמת סוג המשטח, המיקום והחריגים לפי המקור החל", numericRule: { operator: "min", value: 60, unit: "ס״מ", label: "רוחב סימן אזהרה" } },
+  "B-ROUTE-WIDTH": { source: 'ת"י 1918 חלק 2', section: "2.1.4", edition: "2012; אימות מהדורה נדרש", expected: "רוחב חופשי 130 ס״מ לפחות במסלול שעליו התקן חל", exceptions: "היצרויות ותחולת מבנה קיים מחייבות בדיקה פרטנית", numericRule: { operator: "min", value: 130, unit: "ס״מ", label: "רוחב חופשי" } },
   "B-ROUTE-SLOPE": { source: 'ת"י 1918 חלק 2', section: "2.6.3", edition: "2012; אימות מהדורה נדרש", expected: "שיפוע אורכי עד 5% ורוחבי עד 2%", exceptions: "חריגים אפשריים לפי סעיף ותחולה" },
   "B-RAMP": { source: 'ת"י 1918 חלק 2', section: "2.3", edition: "2012; אימות מהדורה נדרש", expected: "שיפוע, רוחב, משטחי ביניים ומעקות לפי גאומטריית הכבש", exceptions: "הדרישה משתנה לפי שטח חוץ, שטח פתוח ומבנה קיים" },
   "B-WC": { source: 'ת"י 1918 חלק 3.1', section: "2.13", edition: "2023; אימות מהדורה נדרש", expected: "מידות תא, סיבוב, מאחזים, כיור, אסלה ודלת לפי טיפוס התא", exceptions: "במבנה קיים יש לבחון מסלול תחולה והפניה בדין" },
@@ -581,6 +603,40 @@ catalog.checklistTemplates.bank = [
   surveyItem("BA-ARRIVAL", "כניסה, קבלה והמתנה", "בדוק מסלול, דלפק, תור, המתנה ושירות חלופי.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
   surveyItem("BA-ATM", "כספומט ומכונות שירות", "בדוק גובה רכיבי הפעלה, שטח תמרון, משוב חזותי וקולי וחלופה אנושית.", ["תקנות נגישות השירות"]),
   surveyItem("BA-DOCS", "מסמכים, חוזים וערוצים דיגיטליים", "בדוק מסמכים נגישים, אתר, אפליקציה וערוץ סיוע.", ['ת"י 5568 חלקים 1 ו-2', "תקנות נגישות השירות"]),
+];
+
+catalog.checklistTemplates.sidewalk = [
+  surveyItem("PW-ROUTE-WIDTH", "רוחב פנוי ורציפות מדרכה", "רוחב חופשי 130 ס״מ לפחות; בהיצרות מקומית עד 110 ס״מ לאורך עד 500 ס״מ, ובמרחק 500 ס״מ לפחות בין היצרויות עוקבות.", ['ת"י 1918 חלק 2, סעיף 2.6.1', "נציבות שוויון זכויות: דרך נגישה"], "ס״מ"),
+  surveyItem("PW-ROUTE-SLOPE", "שיפועים, משטח וניקוז", "שיפוע אורכי עד 5% ושיפוע רוחבי עד 2%; בדוק יציבות משטח, החלקה, בורות, הפרשי גובה וניקוז שאינו יוצר מכשול.", ['ת"י 1918 חלק 2, סעיף 2.6.3', "נציבות שוויון זכויות: דרך נגישה"], "%"),
+  surveyItem("PW-HEADROOM", "גובה חופשי ומכשולים", "אין חדירת עמודים, ענפים, שילוט או מתקנים לתחום ההליכה מתחת לגובה 220 ס״מ; בדוק גם ריהוט רחוב שאינו חוסם את המסלול.", ['ת"י 1918 חלק 2, סעיף 2.6.1', "נציבות שוויון זכויות: דרך נגישה"], "ס״מ"),
+  surveyItem("PW-ROUTE-GUIDANCE", "הכוונה וניגודיות לאורך הדרך", "בדוק סימון, ניגוד חזותי ומשטחי אזהרה או הכוונה במקום שבו נדרש זיהוי של שינוי גובה, מכשול או התפצלות; נדרש אימות תחולה מקצועי.", ['ת"י 1918 חלק 2', 'ת"י 1918 חלק 6'], ""),
+];
+
+catalog.checklistTemplates.crossing = [
+  surveyItem("PW-CROSSING-LEVEL", "הנמכת מדרכה במעבר חציה", "במפגש מדרכה-כביש במקום חציה לא יהיה הפרש גובה. בדוק רציפות בין שתי גדות החציה ומסלול המשך נגיש.", ['ת"י 1918 חלק 2, סעיף 2.6.4.1', "נציבות שוויון זכויות: דרך נגישה"], "ס״מ"),
+  surveyItem("PW-CROSSING-WARNING", "סימון אזהרה מישושי וחזותי", "סימן אזהרה ברוחב 60 ס״מ לפחות, בניגוד חזותי ומישושי, במקום ובתנאים החלים לפי התקן.", ['ת"י 1918 חלק 2, סעיף 2.6.4.1', 'ת"י 1918 חלק 6'], "ס״מ"),
+  surveyItem("PW-CROSSING-CLEAR", "רוחב, מכשולים ותשתיות במעבר", "בדוק שהנמכה, עמודים, תמרורים, ניקוז וריהוט אינם מצמצמים את רצף ההליכה או יוצרים סיכון. יש לאמת ערך סף לפי תחולת המקום.", ['ת"י 1918 חלק 2', "הנחיות רשות הדרך לפי צורך"], ""),
+  surveyItem("PW-CROSSING-SIGNAL", "רמזור, שמע ומידע חציה", "בדוק קיום, הפעלה ומידע נגיש ברמזור או במעבר מבוקר לפי תחולת רשות הדרך, סוג הצומת והוראות ענפיות; נדרש אימות מקצועי.", ["הוראות רשות הדרך ורשות מקומית לפי תחולה", 'ת"י 1918 חלק 6'], ""),
+];
+
+catalog.checklistTemplates.road_environment = [
+  surveyItem("PW-ROAD-EDGE", "שפת מדרכה והפרדה בטוחה מהכביש", "בדוק שהפרדת המסלול מהכביש, גדרות, מעקות, עמודים וחניה אינם מסכנים הולכי רגל או חוסמים את הדרך הנגישה; נדרש אימות לפי תכנון המקום.", ['ת"י 1918 חלק 2', "הנחיות רשות הדרך לפי תחולה"], ""),
+  surveyItem("PW-ROAD-DRAINAGE", "ניקוז, בורות ומפגעי פני דרך", "בדוק מכסי ניקוז, בורות, סדקים, מפלסים ומים עומדים העלולים ליצור סיכון או לפגוע ברציפות ההליכה. תעד מיקום ומדידה כאשר נדרש.", ['ת"י 1918 חלק 2', "הנחיות רשות מקומית לפי תחולה"], ""),
+  surveyItem("PW-ROAD-SIGNAGE", "תמרור, שילוט והכוונה לאורך הדרך", "בדוק שמידע להולכי רגל, סימון, תאורה והכוונה נגישים, קריאים ואינם חוסמים את המסלול; יש לאמת דרישות ענפיות מול רשות הדרך.", ['ת"י 1918 חלק 6', "הנחיות רשות הדרך לפי תחולה"], ""),
+];
+
+catalog.checklistTemplates.sensory_public_space = [
+  surveyItem("SP-TACTILE-GUIDANCE", "הכוונה מישושית וחזותית", "בדוק ניגוד חזותי, שינויי מרקם, משטחי אזהרה או הכוונה במקומות שבהם יש שינוי גובה, מכשול, התפצלות או חציה. יש לאמת סוג ומיקום לפי התקן החל.", ['ת"י 1918 חלק 2', 'ת"י 1918 חלק 6', "נציבות שוויון זכויות: דרך נגישה"], ""),
+  surveyItem("SP-CROSSING-INFO", "מידע חציה ורמזור לאנשים עם לקות ראייה", "במעבר מבוקר בדוק רמזור, אמצעי שמע או הפעלה, כיוון ומידע נגיש בהתאם לסוג הצומת ולהוראות רשות הדרך. נדרש אימות מקצועי של התחולה והתשתית.", ["הוראות רשות הדרך ורשות מקומית לפי תחולה", 'ת"י 1918 חלק 6'], ""),
+  surveyItem("SP-VISUAL-ALERTS", "מידע והתרעות חזותיים לחרשים וכבדי שמיעה", "בדוק שקיימת חלופה חזותית ברורה למידע קולי, כריזה או התרעה במרחב הציבורי ובחירום, לפי השירות והציוד הקיימים. נדרש אימות מול הגורם המפעיל.", ["תקנות נגישות שירות והוראות חירום לפי תחולה", "נציבות שוויון זכויות: הנחיות חירום"], ""),
+  surveyItem("SP-SIGNAGE", "שילוט, תאורה והתמצאות", "בדוק קריאות, ניגודיות, גודל ומיקום שילוט, תאורה שאינה מסנוורת ואפשרות להתמצאות. שילוט בולט או ברייל ייבדק רק במקום ובתחולה שבהם נדרש לפי התקן.", ['ת"י 1918 חלק 6', "נציבות שוויון זכויות: דרך נגישה"], ""),
+];
+
+catalog.checklistTemplates.emergency = [
+  surveyItem("EM-ROUTE", "דרך הגעה נגישה למרחב מוגן או מקלט", "בדוק מסלול פנוי, רצוף ומסומן מהכניסה או מאזור השירות אל המרחב המוגן, ללא ציוד, ריהוט או מכשולים החוסמים גישה. יש לתעד מגבלות זמן והגעה.", ["נציבות שוויון זכויות: הנחיות חירום כלליות לאנשים עם מוגבלות", 'ת"י 1918 לפי תחולה'], ""),
+  surveyItem("EM-SHELTER-READINESS", "מוכנות המקלט והמרחב המוגן", "בדוק פינוי ציוד שאינו נדרש, תקינות דלת, פתחי מילוט ותאורה, ושילוט מכוון למרחב המוגן. אין לראות בבדיקה זו אישור מיגון או בטיחות.", ["נציבות שוויון זכויות: הנחיות חירום כלליות לאנשים עם מוגבלות", "הנחיות פיקוד העורף והגורם המפעיל"], ""),
+  surveyItem("EM-STAY", "שהייה וסיוע לאנשים עם מוגבלות", "בדוק אפשרות הגעה, כניסה, שהייה, ישיבה או מקום לכיסא גלגלים, סיוע אנושי ומידע נגיש לאנשים עם מוגבלות. נדרש אימות מול ייעוד המקום ותוכנית החירום.", ["נציבות שוויון זכויות: הנחיות חירום כלליות לאנשים עם מוגבלות", "תקנות והוראות חירום לפי תחולה"], ""),
+  surveyItem("EM-ALERTS", "התרעה, הנחיות ופינוי נגישים", "בדוק חלופות קוליות וחזותיות, שילוט, הוראות פשוטות, אמצעי תקשורת וסידור פינוי או סיוע בעת הצורך. יש לתאם עם הגורם המפעיל והרשות.", ["נציבות שוויון זכויות: הנחיות חירום כלליות לאנשים עם מוגבלות", "תקנות והוראות חירום לפי תחולה"], ""),
 ];
 
 const defaultState = {
@@ -1560,6 +1616,7 @@ function renderCorrectionReport() {
   }
 
   issues.forEach((issue, index) => {
+    const measurementReport = measurementReportForIssue(inspection, issue);
     const entry = document.createElement("article");
     entry.className = "issue-card";
     const heading = document.createElement("strong");
@@ -1568,17 +1625,13 @@ function renderCorrectionReport() {
     priority.textContent = `עדיפות: ${correctionPriority(issue.severity)}`;
     const action = document.createElement("p");
     action.textContent = `לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
-    const target = document.createElement("p");
-    target.textContent = `מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`;
-    const basis = document.createElement("p");
-    basis.className = "muted small";
-    basis.textContent = `חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`;
-    const measurement = document.createElement("p");
-    measurement.textContent = `נמדד: ${issue.measuredValue ? `${issue.measuredValue} ${issue.measurementUnit || ""}` : "לא נמדד"} | כלי: ${issue.measurementTool || "לא צוין"} | נקודה: ${issue.measurementPoint || "לא צוינה"}`;
+    const measurementDetails = document.createElement("div");
+    measurementDetails.className = "regulatory-requirement";
+    measurementDetails.innerHTML = `<strong>תמצית מדידה ודרישה</strong>${measurementReportLines(measurementReport).map((line) => `<p>${escapeHtml(line)}</p>`).join("")}<p class="muted small">כלי: ${escapeHtml(issue.measurementTool || "לא צוין")} | נקודה: ${escapeHtml(issue.measurementPoint || "לא צוינה")}</p>`;
     const management = document.createElement("p");
     management.className = "muted small";
     management.textContent = `אחראי: ${issue.liableParty || inspection.liableParty || "טרם הוגדר"} | פעולה: ${issue.remediationType || "טרם סווגה"} | אימות חוזר: ${issue.reinspectionStatus || "נדרש"}`;
-    entry.append(heading, priority, action, target, basis, measurement, management);
+    entry.append(heading, priority, action, measurementDetails, management);
     els.correctionReportContent.append(entry);
   });
 }
@@ -1604,13 +1657,13 @@ function saveCorrectionReport() {
   ];
   if (!issues.length) lines.push("אין ליקויים פתוחים בביקורת זו.");
   issues.forEach((issue, index) => {
+    const measurementReport = measurementReportForIssue(inspection, issue);
     lines.push(`${index + 1}. ${issue.title}`);
     lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
     lines.push(`   - מה נראה / מה נמדד: ${issue.description || "לא תועד"}`);
     lines.push(`   - לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
-    lines.push(`   - מה צריך להיות: ${measurementTargetsForIssue(inspection, issue)}`);
-    lines.push(`   - חוק / תקנה / תקן מוצעים לבדיקה: ${issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ")}`);
-    lines.push(`   - ערך מדוד: ${issue.measuredValue || "לא נמדד"} ${issue.measurementUnit || ""}; כלי: ${issue.measurementTool || "לא צוין"}; נקודה: ${issue.measurementPoint || "לא צוינה"}`);
+    measurementReportLines(measurementReport).forEach((line) => lines.push(`   - ${line}`));
+    lines.push(`   - כלי: ${issue.measurementTool || "לא צוין"}; נקודה: ${issue.measurementPoint || "לא צוינה"}`);
     lines.push(`   - אחראי לתיקון: ${issue.liableParty || inspection.liableParty || "טרם הוגדר"}; פעולה: ${issue.remediationType || "טרם סווגה"}; היתר: ${issue.permitNeeded || "לא ידוע"}`);
     lines.push("");
   });
@@ -1630,17 +1683,21 @@ function printCorrectionReport() {
   const rows = issues.length
     ? issues
         .map(
-          (issue, index) => `
+          (issue, index) => {
+            const measurementReport = measurementReportForIssue(inspection, issue);
+            return `
             <article>
               <h2>${index + 1}. ${escapeHtml(issue.title)}</h2>
               <p><strong>עדיפות:</strong> ${escapeHtml(correctionPriority(issue.severity))}</p>
               <p><strong>מה נראה / מה נמדד:</strong> ${escapeHtml(issue.description || "לא תועד")}</p>
               <p><strong>לביצוע:</strong> ${escapeHtml(issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
-              <p><strong>מה צריך להיות:</strong> ${escapeHtml(measurementTargetsForIssue(inspection, issue))}</p>
-              <p><strong>חוק / תקנה / תקן מוצעים לבדיקה:</strong> ${escapeHtml(issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; "))}</p>
+              <h3>תמצית מדידה ודרישה</h3>
+              ${measurementReportLines(measurementReport).map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+              <p><strong>כלי ונקודת מדידה:</strong> ${escapeHtml(issue.measurementTool || "לא צוין")} | ${escapeHtml(issue.measurementPoint || "לא צוינה")}</p>
               <p><strong>ראיות:</strong> ${escapeHtml((issue.evidence || []).map((evidence) => `${evidence.kind}: ${evidence.fileName}`).join(" | ") || "לא צורפו")}</p>
               <p><strong>ביקורת חוזרת:</strong> ${issue.verificationCompleted ? `${escapeHtml(issue.reinspectionDate)} | ${escapeHtml(issue.reinspectionVerifier)} | ${escapeHtml(issue.reinspectionValue)} ${escapeHtml(issue.measurementUnit || "")}` : "טרם בוצעה"}</p>
-            </article>`,
+            </article>`;
+          },
         )
         .join("")
     : "<p>אין ליקויים פתוחים בביקורת זו.</p>";
@@ -1678,6 +1735,73 @@ function measurementTargetsForIssue(inspection, issue) {
     "CHK-S2": "בשלט סטטי לכל קו: כל צלע 20 ס״מ לפחות; גובה אות 25 מ״מ ורוחב 5 מ״מ לפחות. בשילוט נגיש בולט: בליטה 0.8 מ״מ לפחות וגובה אות/ספרה 12 מ״מ לפחות.",
   };
   return issue.measurementTargets || checklistItem?.measurementTargets || verifiedTargets[issue.checklistId] || checklistItem?.threshold || "אין יעד מדידה כמותי מוגדר לפריט זה; נדרש אימות תחולה מקצועי.";
+}
+
+function measurementReportForIssue(inspection, issue) {
+  const checklistItem = inspection?.checklist.find((item) => item.id === issue.checklistId) || {
+    id: issue.checklistId,
+    sourceRefs: issue.sourceRefs || [],
+    measurementTargets: issue.measurementTargets,
+    threshold: issue.requirementText,
+  };
+  const record = requirementRecord(checklistItem);
+  const actualValue = String(issue.measuredValue || "").trim();
+  const actualUnit = String(issue.measurementUnit || "").trim();
+  return {
+    actual: actualValue ? `${actualValue} ${actualUnit}`.trim() : "לא נמדד",
+    required: record.expected || measurementTargetsForIssue(inspection, issue),
+    source: record.source,
+    section: record.section,
+    edition: record.edition,
+    applicability: measurementApplicabilityText(inspection, issue),
+    exceptions: record.exceptions,
+    gap: calculateMeasurementGap(record.numericRule, actualValue, actualUnit),
+  };
+}
+
+function measurementApplicabilityText(inspection, issue) {
+  const decision = {
+    applies: "סומן כחלה לפי הנתונים הקיימים",
+    recommendation: "סומן כהמלצה או תקן מיטבי",
+    unknown: "לא ניתן לקבוע תחולה: חסר מידע",
+  }[issue.applicabilityDecision || "applies"];
+  return `${decision}; מסלול: ${applicabilityProfileLabel(inspection?.applicabilityProfile, inspection?.cluster)}`;
+}
+
+function calculateMeasurementGap(rule, actualValue, actualUnit) {
+  if (!actualValue) return "לא חושב: לא הוזן ערך מדוד.";
+  if (!rule) return "לא חושב אוטומטית: הדרישה אינה סף מספרי יחיד ומאומת לפריט זה.";
+  if (!sameMeasurementUnit(actualUnit, rule.unit)) return `לא חושב: יש להזין יחידת מדידה תואמת (${rule.unit}) כדי לחשב פער.`;
+  const measured = Number(String(actualValue).replace(",", ".").replace(/[^0-9.-]/g, ""));
+  if (!Number.isFinite(measured)) return "לא חושב: הערך שנמדד אינו מספר תקין.";
+  const difference = rule.operator === "min" ? rule.value - measured : measured - rule.value;
+  if (difference <= 0) return `אין פער מספרי לפי ${rule.label} שסומן (${rule.value} ${rule.unit}); יש להמשיך לאמת תחולה ותנאים.`;
+  const action = rule.operator === "min" ? "להגדיל" : "להפחית";
+  return `פער לתיקון: ${formatMeasurementNumber(difference)} ${rule.unit}; יש ${action} עד לעמידה ב-${rule.value} ${rule.unit}.`;
+}
+
+function sameMeasurementUnit(actualUnit, expectedUnit) {
+  const normalize = (unit) => String(unit || "").toLowerCase().replaceAll(" ", "").replaceAll("\"", "״");
+  const aliases = {
+    "ס״מ": ["ס״מ", "סמ", "cm", "סנטימטר", "סנטימטרים"],
+    "%": ["%", "אחוז"],
+  };
+  return (aliases[expectedUnit] || [expectedUnit]).includes(normalize(actualUnit));
+}
+
+function formatMeasurementNumber(value) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function measurementReportLines(report) {
+  return [
+    `ערך שנמדד: ${report.actual}`,
+    `ערך נדרש: ${report.required}`,
+    `מקור: ${report.source}; סעיף: ${report.section}; מהדורה/נוסח: ${report.edition}`,
+    `תחולה: ${report.applicability}`,
+    `חריגים: ${report.exceptions}`,
+    report.gap,
+  ];
 }
 
 function regulatorySourcesForIssue(inspection, checklistItem) {
@@ -1971,6 +2095,7 @@ function renderIssues() {
             const inspection = state.inspections.find((item) => item.id === issue.inspectionId);
             const regulatorySources = issue.aiAssessment?.legalBasis || regulatorySourcesForIssue(inspection, issue).join("; ");
             const requirement = measurementTargetsForIssue(inspection, issue);
+            const measurementReport = measurementReportForIssue(inspection, issue);
             const priorOccurrences = issue.elementId
               ? state.issues.filter((entry) => entry.id !== issue.id && entry.siteName === issue.siteName && entry.elementId === issue.elementId).length
               : 0;
@@ -2000,7 +2125,8 @@ function renderIssues() {
                 <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
               </aside>
               <div class="issue-facts muted small">
-                <strong>מדידה בפועל:</strong> ${escapeHtml(issue.measuredValue || "לא נמדד")} ${escapeHtml(issue.measurementUnit || "")} | <strong>נדרש:</strong> ${escapeHtml(requirement)} | ${escapeHtml(issue.measurementTool || "כלי לא צוין")} | ${escapeHtml(issue.measurementPoint || "נקודה לא צוינה")}<br />
+                <strong>תמצית מדידה:</strong><br />${measurementReportLines(measurementReport).map((line) => escapeHtml(line)).join("<br />")}<br />
+                <strong>כלי ונקודת מדידה:</strong> ${escapeHtml(issue.measurementTool || "כלי לא צוין")} | ${escapeHtml(issue.measurementPoint || "נקודה לא צוינה")}<br />
                 <strong>השפעה:</strong> ${escapeHtml((issue.affectedGroups || []).join(", ") || "לא סווגה")} | ${issue.temporary ? "זמני" : "קבוע / לא סווג"} | ${issue.lifeSafety ? "סיכון חיי אדם או פינוי" : "ללא סימון חירום"}<br />
                 <strong>תיקון:</strong> ${escapeHtml(issue.liableParty || inspection?.liableParty || "אחראי טרם הוגדר")} | ${escapeHtml(issue.remediationType || "לא סווג")} | ${escapeHtml(issue.estimatedCost || "עלות לא הוזנה")} | היתר: ${escapeHtml(issue.permitNeeded || "לא ידוע")}
               </div>

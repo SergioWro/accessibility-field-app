@@ -1,4 +1,4 @@
-const CACHE_NAME = "accessibility-field-app-v24";
+const CACHE_NAME = "accessibility-field-app-v27";
 const APP_SHELL = [
   "./",
   "./index.html",
