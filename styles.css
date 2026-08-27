@@ -649,6 +649,32 @@ dialog::backdrop {
   padding: 1rem;
 }
 
+.report-status-card.is-resolved,
+.report-issue.is-resolved {
+  border-color: #8ac8b9;
+  border-inline-start: 6px solid var(--primary);
+  background: #edf8f4;
+}
+
+.report-issue.is-open {
+  border-color: #e1aaa4;
+  border-inline-start: 6px solid var(--danger);
+  background: var(--danger-soft);
+}
+
+.report-status {
+  margin: 0.55rem 0;
+  font-weight: 800;
+}
+
+.report-issue.is-resolved .report-status {
+  color: var(--primary-dark);
+}
+
+.report-issue.is-open .report-status {
+  color: var(--danger);
+}
+
 .issue-card header {
   display: flex;
   justify-content: space-between;

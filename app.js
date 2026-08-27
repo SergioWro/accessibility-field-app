@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.11.1";
+const APP_VERSION = "1.12.0";
 
 const catalog = {
   clusters: [
@@ -204,7 +204,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.13",
+    title: "SRD נגיצ'ק v3.14",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -519,6 +519,7 @@ catalog.checklistTemplates.bus_stop = [
   surveyItem("T-DEPLOY", "רחבת היערכות ומקום המתנה", "רחבת היערכות עירונית 250×200 ס״מ לפחות; מקום המתנה לכיסא גלגלים 120×80 ס״מ לפחות.", ["תקנות נגישות תחבורה ציבורית, תוספת חמישית"], "ס״מ"),
   surveyItem("T-CLEAR", "מעבר חופשי ודרך נגישה", "מעבר חופשי בחזית סככה 110 ס״מ לפחות ורציפות דרך נגישה אל התחנה.", ["תקנות נגישות תחבורה ציבורית, תוספת חמישית"], "ס״מ"),
   surveyItem("T-SIGN", "שילוט ומידע לנוסע", "בדוק קריאות, ניגוד, גודל, מיקום ומידע נגיש לפי ההוראות החלות.", ["תקנות נגישות תחבורה ציבורית", "משרד התחבורה, הנחיות תחנות אוטובוס"]),
+  surveyItem("T-RAMP-GAP", "פער גובה בין האוטובוס לשפת המדרכה ורמפת עלייה", "בדוק שמיקום העצירה, שפת המדרכה ורחבת ההיערכות מאפשרים לרמפה להיפתח אל משטח מפולס ופנוי, בשיפוע תפעולי בטוח. תעד הפרש גובה, שיפוע או זווית אם נמדדו, וסוג האוטובוס; יש לאמת את התחולה מול הרשות והמפעיל.", ["תקנות נגישות תחבורה ציבורית, תוספת חמישית", "משרד התחבורה, הנחיות תחנות אוטובוס"]),
 ];
 
 catalog.checklistTemplates.education = [
@@ -596,6 +597,7 @@ catalog.checklistTemplates.local_authority = [
 catalog.checklistTemplates.retail = [
   surveyItem("RE-ENTRY", "כניסה ומעברים", "בדוק כניסה, דלתות, מעברים, תצוגה ומסלול לקופה.", ['ת"י 1918 חלק 3.1']),
   surveyItem("RE-CASHIER", "קופה, שירות ותשלום", "בדוק דלפק, תשלום, שירות עצמי, מידע וסיוע.", ["תקנות נגישות השירות"]),
+  surveyItem("RE-DRESSING", "תא הלבשה נגיש", "בדוק דרך הגעה פנויה לתא, פתח ודלת, מרחב תמרון, ספסל, אביזרי תלייה ומראה, ואפשרות לקבלת סיוע. מידות ותחולה ייאומתו לפי סוג המקום והדין החל.", ['ת"י 1918 חלק 3.1', "תקנות נגישות השירות"]),
   surveyItem("RE-INFO", "שילוט ומידע מוצר", "בדוק קריאות, ניגוד, מידע חלופי וסיוע.", ['ת"י 1918 חלק 6', "תקנות נגישות השירות"]),
 ];
 
@@ -1593,6 +1595,10 @@ function renderAiAssessment(issue, resultElement, controlsElement) {
   }
 }
 
+function reportIssueIsResolved(issue) {
+  return issue.lifecycle === "closed" && issue.verificationCompleted === true;
+}
+
 function renderCorrectionReport() {
   const inspection = state.inspections.find((item) => item.id === reportInspectionId);
   if (!inspection) {
@@ -1601,7 +1607,7 @@ function renderCorrectionReport() {
   }
 
   const issues = state.issues
-    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .filter((issue) => issue.inspectionId === inspection.id)
     .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
   els.correctionReport.classList.remove("hidden");
   els.correctionReportDate.textContent = `תאריך ביצוע הביקורת: ${formatDate(inspection.createdAt)}`;
@@ -1609,8 +1615,8 @@ function renderCorrectionReport() {
 
   if (!issues.length) {
     const empty = document.createElement("div");
-    empty.className = "list-row";
-    empty.textContent = "אין ליקויים פתוחים בביקורת זו, ולכן אין פעולות תיקון להציג.";
+    empty.className = "list-row report-status-card is-resolved";
+    empty.textContent = "לא נמצאו ליקויים בביקורת זו. סטטוס הדוח: תקין.";
     els.correctionReportContent.append(empty);
     return;
   }
@@ -1618,11 +1624,15 @@ function renderCorrectionReport() {
   issues.forEach((issue, index) => {
     const measurementReport = measurementReportForIssue(inspection, issue);
     const entry = document.createElement("article");
-    entry.className = "issue-card";
+    const isResolved = reportIssueIsResolved(issue);
+    entry.className = `issue-card report-issue ${isResolved ? "is-resolved" : "is-open"}`;
     const heading = document.createElement("strong");
     heading.textContent = `${index + 1}. ${issue.title}`;
     const priority = document.createElement("p");
     priority.textContent = `עדיפות: ${correctionPriority(issue.severity)}`;
+    const reportStatus = document.createElement("p");
+    reportStatus.className = "report-status";
+    reportStatus.textContent = isResolved ? "סטטוס: טופל ואומת בשטח" : "סטטוס: ליקוי פתוח - נדרש תיקון ואימות";
     const action = document.createElement("p");
     action.textContent = `לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`;
     const measurementDetails = document.createElement("div");
@@ -1631,7 +1641,7 @@ function renderCorrectionReport() {
     const management = document.createElement("p");
     management.className = "muted small";
     management.textContent = `אחראי: ${issue.liableParty || inspection.liableParty || "טרם הוגדר"} | פעולה: ${issue.remediationType || "טרם סווגה"} | אימות חוזר: ${issue.reinspectionStatus || "נדרש"}`;
-    entry.append(heading, priority, action, measurementDetails, management);
+    entry.append(heading, reportStatus, priority, action, measurementDetails, management);
     els.correctionReportContent.append(entry);
   });
 }
@@ -1640,7 +1650,7 @@ function saveCorrectionReport() {
   const inspection = state.inspections.find((item) => item.id === reportInspectionId);
   if (!inspection) return;
   const issues = state.issues
-    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .filter((issue) => issue.inspectionId === inspection.id)
     .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
   const lines = [
     `# דוח לתיקון ממצאים: ${inspection.siteName}`,
@@ -1655,10 +1665,12 @@ function saveCorrectionReport() {
     "## פעולות לתיקון",
     "",
   ];
-  if (!issues.length) lines.push("אין ליקויים פתוחים בביקורת זו.");
+  if (!issues.length) lines.push("לא נמצאו ליקויים בביקורת זו. סטטוס הדוח: תקין (ירוק).");
   issues.forEach((issue, index) => {
     const measurementReport = measurementReportForIssue(inspection, issue);
+    const isResolved = reportIssueIsResolved(issue);
     lines.push(`${index + 1}. ${issue.title}`);
+    lines.push(`   - סטטוס: ${isResolved ? "טופל ואומת בשטח (ירוק)" : "ליקוי פתוח - נדרש תיקון ואימות (אדום)"}`);
     lines.push(`   - עדיפות: ${correctionPriority(issue.severity)}`);
     lines.push(`   - מה נראה / מה נמדד: ${issue.description || "לא תועד"}`);
     lines.push(`   - לביצוע: ${issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד."}`);
@@ -1678,16 +1690,18 @@ function printCorrectionReport() {
     return;
   }
   const issues = state.issues
-    .filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle !== "closed")
+    .filter((issue) => issue.inspectionId === inspection.id)
     .sort((a, b) => correctionPriorityRank(a.severity) - correctionPriorityRank(b.severity));
   const rows = issues.length
     ? issues
         .map(
           (issue, index) => {
             const measurementReport = measurementReportForIssue(inspection, issue);
+            const isResolved = reportIssueIsResolved(issue);
             return `
-            <article>
+            <article class="${isResolved ? "resolved" : "open"}">
               <h2>${index + 1}. ${escapeHtml(issue.title)}</h2>
+              <p class="status"><strong>סטטוס:</strong> ${isResolved ? "טופל ואומת בשטח" : "ליקוי פתוח - נדרש תיקון ואימות"}</p>
               <p><strong>עדיפות:</strong> ${escapeHtml(correctionPriority(issue.severity))}</p>
               <p><strong>מה נראה / מה נמדד:</strong> ${escapeHtml(issue.description || "לא תועד")}</p>
               <p><strong>לביצוע:</strong> ${escapeHtml(issue.recommendation || issue.aiAssessment?.recommendedAction || "בדיקה מקצועית והסרת הליקוי שתועד.")}</p>
@@ -1700,7 +1714,7 @@ function printCorrectionReport() {
           },
         )
         .join("")
-    : "<p>אין ליקויים פתוחים בביקורת זו.</p>";
+    : "<p class=\"resolved-summary\">לא נמצאו ליקויים בביקורת זו. סטטוס הדוח: תקין.</p>";
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     renderSystemStatus("הדפדפן חסם את חלון ההדפסה. אפשר חלונות קופצים ונסה שוב.");
@@ -1708,7 +1722,7 @@ function printCorrectionReport() {
   }
   printWindow.opener = null;
   const documents = (inspection.documents || []).map((document) => `${document.type}: ${document.name} (${document.reference || "ללא אסמכתה"})`).join(" | ") || "לא צורפו מסמכי בסיס";
-  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח סקר ותיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p><p><strong>מסמכי בסיס מקומיים:</strong> ${escapeHtml(documents)}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}article.open{border-color:#e1aaa4;border-right-color:#a6362b;background:#fff3f1}article.resolved,.resolved-summary{border-color:#8ac8b9;border-right-color:#0e5f5c;background:#edf8f4}.status{font-weight:700}.open .status{color:#a6362b}.resolved .status{color:#0e5f5c}.resolved-summary{border:1px solid #8ac8b9;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח סקר ותיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p><p><strong>מסמכי בסיס מקומיים:</strong> ${escapeHtml(documents)}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 250);
@@ -2375,12 +2389,38 @@ function seedDemoData() {
       issueId: null,
     })),
   };
-  state.inspections.push(inspection);
-  state.inspections.push(serviceInspection);
+  const busInspection = {
+    id: crypto.randomUUID(),
+    cluster: "built",
+    siteType: "bus_stop",
+    applicabilityProfile: "non_building_public_place",
+    siteName: "תחנת אוטובוס - רחוב הדגמה",
+    address: "רחוב התחנה 4, תל אביב",
+    inspector: "רכז נגישות",
+    gps: "לא הוזן",
+    notes: "ביקורת הדגמה בתחנת אוטובוס",
+    createdAt: new Date().toISOString(),
+    status: "draft",
+    checklist: catalog.checklistTemplates.bus_stop.map((item) => ({
+      ...item,
+      reviewStatus: item.id === "T-RAMP-GAP" ? "fail" : "pass",
+      issueId: null,
+    })),
+  };
+  state.inspections.push(inspection, serviceInspection, busInspection);
   state.activeInspectionId = inspection.id;
   createOrUpdateIssue(inspection, inspection.checklist[0], "רוחב המעבר נמדד כ-76 ס\"מ ליד עמדת הכניסה.", "high");
   createOrUpdateIssue(serviceInspection, serviceInspection.checklist[0], "באתר ובדלפק השירות לא נמצא פרסום ברור של הסדרי הנגישות ודרכי הפנייה לקבלת סיוע.", "medium");
-  state.pendingSyncCount = 2;
+  createOrUpdateIssue(busInspection, busInspection.checklist.find((item) => item.id === "T-RAMP-GAP"), "נמצא הפרש גובה בין רצפת האוטובוס לשפת המדרכה. רמפת העלייה נפתחת בזווית תלולה, ולכן אדם המשתמש בכיסא גלגלים אינו יכול לעלות לאוטובוס בבטחה.", "blocking");
+  const busIssue = state.issues.find((issue) => issue.inspectionId === busInspection.id && issue.checklistId === "T-RAMP-GAP");
+  Object.assign(busIssue, {
+    measurementPoint: "אזור פתיחת רמפת האוטובוס מול שפת המדרכה",
+    measurementTool: "לא נמדד - נדרשת מדידה בשטח",
+    affectedGroups: ["ניידות"],
+    lifeSafety: true,
+    recommendation: "לתאם עם הרשות המקומית ומפעיל התחבורה התאמת מיקום העצירה ושפת המדרכה, ולבצע מדידה חוזרת של הפרש הגובה ושיפוע הרמפה לפני סגירת הממצא.",
+  });
+  state.pendingSyncCount = 3;
   saveState("demo_seeded");
   render();
 }
