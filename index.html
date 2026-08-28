@@ -107,7 +107,7 @@
                 <label><span>מיקום GPS</span><div class="field-with-action"><input type="text" name="gps" placeholder="31.778, 35.235" /><button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button></div></label>
                 <label class="full"><span>הערות פתיחה</span><textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea></label>
 
-                <section class="full inspection-subsection" data-clusters="built">
+                <section class="full inspection-subsection" data-clusters="built" data-profiles="existing_public_building new_public_building new_residential">
                   <h4>נתוני מבנה ותחולה</h4>
                   <label data-help="מסייע להבחין בין מבנה קיים, מבנה חדש ושינוי מהותי. הבחירה משפיעה על מסלול התחולה ודורשת אימות מול ההיתר והדין."><span>מצב המבנה</span><select name="buildingStatus"><option value="existing">בניין קיים</option><option value="new">בניין חדש</option><option value="major_change">שינוי מהותי בבניין קיים</option></select></label>
                   <label><span>שנת הקמה</span><input type="number" name="constructionYear" min="1800" max="2100" /></label>
@@ -141,12 +141,15 @@
                 <details class="full advanced-details">
                   <summary>פרטים מתקדמים ומסמכים</summary>
                   <div class="form-grid">
-                    <label><span>החייב בנגישות</span><input type="text" name="liablePartyFallback" placeholder="אם לא הוזן למעלה" /></label>
-                    <label><span>תפקיד החייב</span><input type="text" name="liableRoleFallback" placeholder="בעלים, מנהל נכס וכו׳" /></label>
-                    <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationIdFallback" /></label>
-                    <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficerFallback" /></label>
-                    <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredentialFallback" placeholder="אם לא הוזן למעלה" /></label>
-                    <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
+                    <section class="full inspection-subsection" data-clusters="built">
+                      <h4>פרטי גורם אחראי ומסמכים</h4>
+                      <label><span>החייב בנגישות</span><input type="text" name="liablePartyFallback" /></label>
+                      <label><span>תפקיד החייב</span><input type="text" name="liableRoleFallback" placeholder="בעלים, מנהל נכס וכו׳" /></label>
+                      <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationIdFallback" /></label>
+                      <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficerFallback" /></label>
+                      <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredentialFallback" placeholder="אופציונלי" /></label>
+                      <fieldset class="full compact-fieldset"><legend>מסמכים קיימים</legend><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
+                    </section>
                     <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
                     <label data-help="מסווג את המסמך המצורף כדי שיהיה אפשר להבין אם הוא היתר, פטור, התאמה חלופית או דוח קודם. יש לציין גם אסמכתה ותוקף כאשר קיימים."><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
                     <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>

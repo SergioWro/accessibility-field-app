@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.13.1";
+const APP_VERSION = "1.14.0";
 
 const catalog = {
   clusters: [
@@ -204,7 +204,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.17",
+    title: "SRD נגיצ'ק v3.18",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -1108,16 +1108,27 @@ function updateInspectionDetails() {
   const isReady = Boolean(cluster.value && siteType.value && applicabilityProfile.value);
   els.inspectionDetails.hidden = !isReady;
   els.inspectionFlowHint.hidden = isReady;
+  setFormControlsEnabled(els.inspectionDetails, isReady);
   if (!isReady) return;
 
-  document.querySelectorAll(".inspection-subsection").forEach((section) => {
+  els.inspectionDetails.querySelectorAll(".inspection-subsection").forEach((section) => {
     const clusters = (section.dataset.clusters || "").split(" ").filter(Boolean);
     const siteTypes = (section.dataset.siteTypes || "").split(" ").filter(Boolean);
+    const profiles = (section.dataset.profiles || "").split(" ").filter(Boolean);
     const clusterMatches = !clusters.length || clusters.includes(cluster.value);
     const siteTypeMatches = !siteTypes.length || siteTypes.includes(siteType.value);
-    section.hidden = !(clusterMatches && siteTypeMatches);
+    const profileMatches = !profiles.length || profiles.includes(applicabilityProfile.value);
+    const applies = clusterMatches && siteTypeMatches && profileMatches;
+    section.hidden = !applies;
+    setFormControlsEnabled(section, applies);
   });
   els.inspectionPathSummary.textContent = `בחירה פעילה: ${siteTypeLabel(siteType.value)} · ${applicabilityProfileLabel(applicabilityProfile.value, cluster.value)}.`;
+}
+
+function setFormControlsEnabled(container, enabled) {
+  container.querySelectorAll("input, select, textarea, button").forEach((control) => {
+    control.disabled = !enabled;
+  });
 }
 
 function switchView(viewName) {
@@ -1138,41 +1149,43 @@ function viewFromHash() {
 async function handleCreateInspection(event) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
-  const siteType = formData.get("siteType");
+  const value = (name) => formData.get(name) ?? "";
+  const uniqueValues = (name) => [...new Set(formData.getAll(name))];
+  const siteType = value("siteType");
   const inspection = {
     id: crypto.randomUUID(),
-    cluster: formData.get("cluster"),
+    cluster: value("cluster"),
     siteType,
-    applicabilityProfile: formData.get("applicabilityProfile"),
-    siteName: formData.get("siteName"),
-    address: formData.get("address"),
-    inspector: formData.get("inspector"),
-    gps: formData.get("gps"),
-    notes: formData.get("notes"),
-    buildingStatus: formData.get("buildingStatus"),
-    constructionYear: formData.get("constructionYear"),
-    permitYear: formData.get("permitYear"),
-    majorChangeYear: formData.get("majorChangeYear"),
-    actualUse: formData.get("actualUse"),
-    permittedUse: formData.get("permittedUse"),
-    mainArea: formData.get("mainArea"),
-    levels: formData.get("levels"),
-    publicCapacity: formData.get("publicCapacity"),
-    accommodationRoomTotal: formData.get("accommodationRoomTotal"),
-    accessibleRoomsRequired: formData.get("accessibleRoomsRequired"),
-    accessibleRoomsExisting: formData.get("accessibleRoomsExisting"),
-    inspectorCredential: formData.get("inspectorCredential") || formData.get("inspectorCredentialFallback"),
-    surveyType: formData.get("surveyType"),
-    liableParty: formData.get("liableParty") || formData.get("liablePartyFallback"),
-    liableRole: formData.get("liableRole") || formData.get("liableRoleFallback"),
-    organizationId: formData.get("organizationId") || formData.get("organizationIdFallback"),
-    accessibilityOfficer: formData.get("accessibilityOfficer") || formData.get("accessibilityOfficerFallback"),
-    requiredFacilities: formData.getAll("requiredFacilities"),
-    recordFlags: formData.getAll("recordFlags"),
-    exemptionDetails: formData.get("exemptionDetails"),
-    documentType: formData.get("documentType"),
-    documentReference: formData.get("documentReference"),
-    scopeLimitations: formData.get("scopeLimitations"),
+    applicabilityProfile: value("applicabilityProfile"),
+    siteName: value("siteName"),
+    address: value("address"),
+    inspector: value("inspector"),
+    gps: value("gps"),
+    notes: value("notes"),
+    buildingStatus: value("buildingStatus"),
+    constructionYear: value("constructionYear"),
+    permitYear: value("permitYear"),
+    majorChangeYear: value("majorChangeYear"),
+    actualUse: value("actualUse"),
+    permittedUse: value("permittedUse"),
+    mainArea: value("mainArea"),
+    levels: value("levels"),
+    publicCapacity: value("publicCapacity"),
+    accommodationRoomTotal: value("accommodationRoomTotal"),
+    accessibleRoomsRequired: value("accessibleRoomsRequired"),
+    accessibleRoomsExisting: value("accessibleRoomsExisting"),
+    inspectorCredential: value("inspectorCredential") || value("inspectorCredentialFallback"),
+    surveyType: value("surveyType"),
+    liableParty: value("liableParty") || value("liablePartyFallback"),
+    liableRole: value("liableRole") || value("liableRoleFallback"),
+    organizationId: value("organizationId") || value("organizationIdFallback"),
+    accessibilityOfficer: value("accessibilityOfficer") || value("accessibilityOfficerFallback"),
+    requiredFacilities: uniqueValues("requiredFacilities"),
+    recordFlags: uniqueValues("recordFlags"),
+    exemptionDetails: value("exemptionDetails"),
+    documentType: value("documentType"),
+    documentReference: value("documentReference"),
+    scopeLimitations: value("scopeLimitations"),
     documents: [],
     createdAt: new Date().toISOString(),
     status: "draft",
