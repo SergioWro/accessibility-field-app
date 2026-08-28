@@ -7,7 +7,8 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.14.0";
+const APP_VERSION = "1.14.1";
+const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
   clusters: [
@@ -204,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.18",
+    title: "SRD נגיצ'ק v3.19",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -1246,7 +1247,7 @@ function renderSystemStatus(message) {
   const rows = [
     ["גרסת אפליקציה", APP_VERSION],
     ["משתמש", "Single-user local profile"],
-    ["סטטוס AI", state.settings.apiKeyMasked ? "BYOK הוגדר" : "ללא מפתח שמור"],
+    ["סטטוס AI", getApiKey() ? "BYOK הוגדר בסשן" : "ללא מפתח שמור"],
     ["ממתין לסנכרון", String(state.pendingSyncCount)],
     ["ביקורת פעילה", activeInspection ? activeInspection.siteName : "אין"],
     ["הודעה", message || "הנתונים נשמרים בדפדפן המקומי"],
@@ -1465,14 +1466,17 @@ function renderActiveInspection() {
         return;
       }
       if (!getApiKey()) {
-        aiResult.textContent = "יש להזין OpenAI API Key בהגדרות עבור סשן זה.";
+        aiResult.textContent = "לא נמצא מפתח API פעיל בסשן זה. פתח את הגדרות BYOK, הזן מפתח ושמור הגדרות.";
+        renderSystemStatus("ניתוח AI לא הופעל: לא נמצא מפתח API פעיל בסשן.");
         switchView("settings");
         return;
       }
       analyzeButton.disabled = true;
-      aiResult.textContent = "מנתח את הצילום...";
+      aiResult.textContent = "מכין את הצילום לניתוח...";
       try {
-        const assessment = await analyzePhotoWithOpenAI(photoInput.files[0], inspection, item);
+        const assessment = await analyzePhotoWithOpenAI(photoInput.files[0], inspection, item, (message) => {
+          aiResult.textContent = message;
+        });
         const issue = state.issues.find((entry) => entry.id === item.issueId);
         if (issue) {
           issue.aiStatus = "PENDING_HUMAN_REVIEW";
@@ -1487,7 +1491,7 @@ function renderActiveInspection() {
         renderIssues();
         renderSystemStatus("ניתוח AI התקבל וממתין לאישור אנושי.");
       } catch (error) {
-        aiResult.textContent = `הניתוח לא הושלם: ${error.message}`;
+        aiResult.textContent = `הניתוח לא הושלם: ${error.message || "שגיאה לא מזוהה."}`;
       } finally {
         analyzeButton.disabled = false;
       }
@@ -2045,8 +2049,10 @@ function loadImageForCompression(file) {
   });
 }
 
-async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
-  const imageUrl = await readFileAsDataUrl(photoFile);
+async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem, onProgress) {
+  onProgress?.("מכווץ את הצילום לפני שליחתו לניתוח...");
+  const preparedPhoto = await prepareLocalFile(photoFile);
+  const imageUrl = await readFileAsDataUrl(preparedPhoto);
   const legalBases = legalBasesForInspection(inspection, checklistItem);
   const prompt = [
     "אתה מסייע לבודק נגישות. נתח את הצילום בהקשר של פריט הצ'קליסט בלבד.",
@@ -2070,19 +2076,31 @@ async function analyzePhotoWithOpenAI(photoFile, inspection, checklistItem) {
     },
     required: ["observation", "recommendation", "recommendedAction", "legalBasisIndex", "confidence", "limitations"],
   };
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getApiKey()}`,
-    },
-    body: JSON.stringify({
-      model: state.settings.visionModel,
-      input: [{ role: "user", content: [{ type: "input_text", text: prompt }, { type: "input_image", image_url: imageUrl }] }],
-      text: { format: { type: "json_schema", name: "accessibility_photo_assessment", strict: true, schema } },
-    }),
-  });
-  const payload = await response.json();
+  onProgress?.("שולח את הצילום לניתוח AI...");
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getApiKey()}`,
+      },
+      body: JSON.stringify({
+        model: state.settings.visionModel,
+        input: [{ role: "user", content: [{ type: "input_text", text: prompt }, { type: "input_image", image_url: imageUrl }] }],
+        text: { format: { type: "json_schema", name: "accessibility_photo_assessment", strict: true, schema } },
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("לא התקבלה תשובה בתוך 90 שניות. בדוק חיבור רשת, מפתח API ונסה שוב.");
+    throw new Error("לא ניתן להתחבר ל-OpenAI. בדוק חיבור רשת והרשאת המפתח, ואז נסה שוב.");
+  } finally {
+    window.clearTimeout(timeout);
+  }
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error?.message || "שגיאה בתקשורת עם OpenAI.");
   const output = payload.output_text || payload.output?.flatMap((item) => item.content || []).find((item) => item.type === "output_text")?.text;
   if (!output) throw new Error("לא התקבלה תשובת ניתוח תקינה.");
