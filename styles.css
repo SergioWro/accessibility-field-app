@@ -289,6 +289,12 @@ body:has(.view:target) .view.is-active {
   gap: 1rem;
 }
 
+/* Keep conditional sections out of the layout when their selected path does not apply. */
+.inspection-details[hidden],
+.inspection-subsection[hidden] {
+  display: none !important;
+}
+
 .inspection-subsection,
 .advanced-details {
   padding: 1rem;
