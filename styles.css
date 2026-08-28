@@ -581,7 +581,7 @@ dialog::backdrop {
 
 .inspection-workspace.hidden,
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .checklist {
