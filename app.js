@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.12.1";
+const APP_VERSION = "1.13.0";
 
 const catalog = {
   clusters: [
@@ -204,7 +204,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.15",
+    title: "SRD נגיצ'ק v3.16",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -728,6 +728,9 @@ const els = {
   cancelImport: document.getElementById("cancel-import"),
   captureGps: document.getElementById("capture-gps"),
   installApp: document.getElementById("install-app"),
+  inspectionDetails: document.getElementById("inspection-details"),
+  inspectionFlowHint: document.getElementById("inspection-flow-hint"),
+  inspectionPathSummary: document.getElementById("inspection-path-summary"),
   accessibilityToggle: document.getElementById("accessibility-toggle"),
   accessibilityPanel: document.getElementById("accessibility-panel"),
   accessibilityClose: document.getElementById("accessibility-close"),
@@ -864,7 +867,10 @@ function bindEvents() {
   els.inspectionForm.cluster.addEventListener("change", () => {
     populateSiteTypes();
     populateApplicabilityProfiles();
+    updateInspectionDetails();
   });
+  els.inspectionForm.siteType.addEventListener("change", updateInspectionDetails);
+  els.inspectionForm.applicabilityProfile.addEventListener("change", updateInspectionDetails);
   els.statusFilter.addEventListener("change", renderIssues);
   [els.issueSearch, els.responsibleFilter, els.dueFilter, els.reinspectionFilter].forEach((control) => {
     control.addEventListener(control === els.issueSearch ? "input" : "change", renderIssues);
@@ -1059,29 +1065,59 @@ async function updateStorageStatus() {
 }
 
 function populateInspectionForm() {
-  els.inspectionForm.cluster.innerHTML = catalog.clusters
+  els.inspectionForm.cluster.innerHTML = [`<option value="" selected disabled>בחר אשכול</option>`, ...catalog.clusters
     .map((cluster) => `<option value="${cluster.id}">${cluster.name}</option>`)
-    .join("");
+  ].join("");
   populateSiteTypes();
   populateApplicabilityProfiles();
+  updateInspectionDetails();
 }
 
 function populateSiteTypes() {
   const clusterId = els.inspectionForm.cluster.value;
+  if (!clusterId) {
+    els.inspectionForm.siteType.innerHTML = `<option value="" selected disabled>בחר תחילה אשכול</option>`;
+    els.inspectionForm.siteType.disabled = true;
+    return;
+  }
   const options = catalog.siteTypes.filter(
     (item) => item.cluster === clusterId && !catalog.checklistTemplates[item.id]?.some((checkItem) => checkItem.baselineOnly),
   );
-  els.inspectionForm.siteType.innerHTML = options
+  els.inspectionForm.siteType.innerHTML = [`<option value="" selected disabled>בחר סוג אתר/שירות</option>`, ...options
     .map((item) => `<option value="${item.id}">${item.name}</option>`)
-    .join("");
+  ].join("");
+  els.inspectionForm.siteType.disabled = false;
 }
 
 function populateApplicabilityProfiles() {
   const clusterId = els.inspectionForm.cluster.value;
+  if (!clusterId) {
+    els.inspectionForm.applicabilityProfile.innerHTML = `<option value="" selected disabled>בחר תחילה אשכול</option>`;
+    els.inspectionForm.applicabilityProfile.disabled = true;
+    return;
+  }
   const options = catalog.applicabilityProfiles.filter((profile) => profile.clusters.includes(clusterId));
-  els.inspectionForm.applicabilityProfile.innerHTML = options
+  els.inspectionForm.applicabilityProfile.innerHTML = [`<option value="" selected disabled>בחר מסלול תחולה</option>`, ...options
     .map((profile) => `<option value="${profile.id}">${profile.name}</option>`)
-    .join("");
+  ].join("");
+  els.inspectionForm.applicabilityProfile.disabled = false;
+}
+
+function updateInspectionDetails() {
+  const { cluster, siteType, applicabilityProfile } = els.inspectionForm;
+  const isReady = Boolean(cluster.value && siteType.value && applicabilityProfile.value);
+  els.inspectionDetails.hidden = !isReady;
+  els.inspectionFlowHint.hidden = isReady;
+  if (!isReady) return;
+
+  document.querySelectorAll(".inspection-subsection").forEach((section) => {
+    const clusters = (section.dataset.clusters || "").split(" ").filter(Boolean);
+    const siteTypes = (section.dataset.siteTypes || "").split(" ").filter(Boolean);
+    const clusterMatches = !clusters.length || clusters.includes(cluster.value);
+    const siteTypeMatches = !siteTypes.length || siteTypes.includes(siteType.value);
+    section.hidden = !(clusterMatches && siteTypeMatches);
+  });
+  els.inspectionPathSummary.textContent = `בחירה פעילה: ${siteTypeLabel(siteType.value)} · ${applicabilityProfileLabel(applicabilityProfile.value, cluster.value)}.`;
 }
 
 function switchView(viewName) {
@@ -1125,12 +1161,12 @@ async function handleCreateInspection(event) {
     accommodationRoomTotal: formData.get("accommodationRoomTotal"),
     accessibleRoomsRequired: formData.get("accessibleRoomsRequired"),
     accessibleRoomsExisting: formData.get("accessibleRoomsExisting"),
-    inspectorCredential: formData.get("inspectorCredential"),
+    inspectorCredential: formData.get("inspectorCredential") || formData.get("inspectorCredentialFallback"),
     surveyType: formData.get("surveyType"),
-    liableParty: formData.get("liableParty"),
-    liableRole: formData.get("liableRole"),
-    organizationId: formData.get("organizationId"),
-    accessibilityOfficer: formData.get("accessibilityOfficer"),
+    liableParty: formData.get("liableParty") || formData.get("liablePartyFallback"),
+    liableRole: formData.get("liableRole") || formData.get("liableRoleFallback"),
+    organizationId: formData.get("organizationId") || formData.get("organizationIdFallback"),
+    accessibilityOfficer: formData.get("accessibilityOfficer") || formData.get("accessibilityOfficerFallback"),
     requiredFacilities: formData.getAll("requiredFacilities"),
     recordFlags: formData.getAll("recordFlags"),
     exemptionDetails: formData.get("exemptionDetails"),

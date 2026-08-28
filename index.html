@@ -96,59 +96,65 @@
                 <span>מסלול תחולה</span>
                 <select name="applicabilityProfile" required></select>
               </label>
-              <div class="full form-section-title">שער תחולה ומסמכי בסיס</div>
-              <label data-help="מסייע להבחין בין מבנה קיים, מבנה חדש ושינוי מהותי. הבחירה משפיעה על מסלול התחולה ודורשת אימות מול ההיתר והדין.">
-                <span>מצב המבנה</span>
-                <select name="buildingStatus"><option value="existing">בניין קיים</option><option value="new">בניין חדש</option><option value="major_change">שינוי מהותי בבניין קיים</option></select>
-              </label>
-              <label><span>שנת הקמה</span><input type="number" name="constructionYear" min="1800" max="2100" /></label>
-              <label><span>שנת היתר</span><input type="number" name="permitYear" min="1800" max="2100" /></label>
-              <label><span>שנת שינוי ייעוד / שיפוץ</span><input type="number" name="majorChangeYear" min="1800" max="2100" /></label>
-              <label><span>ייעוד בפועל</span><input type="text" name="actualUse" placeholder="למשל: מרכז קבלת קהל" /></label>
-              <label><span>ייעוד בהיתר</span><input type="text" name="permittedUse" placeholder="אם ידוע" /></label>
-              <label><span>שטח עיקרי במ״ר</span><input type="number" name="mainArea" min="0" /></label>
-              <label><span>מספר מפלסים</span><input type="number" name="levels" min="0" /></label>
-              <label><span>קיבולת קהל</span><input type="number" name="publicCapacity" min="0" /></label>
-              <label><span>מספר חדרי אירוח</span><input type="number" name="accommodationRoomTotal" min="0" /></label>
-              <label><span>מספר חדרים נגישים נדרש</span><input type="number" name="accessibleRoomsRequired" min="0" /></label>
-              <label><span>מספר חדרים נגישים קיים</span><input type="number" name="accessibleRoomsExisting" min="0" /></label>
-              <label>
-                <span>שם אתר</span>
-                <input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required />
-              </label>
-              <label>
-                <span>כתובת</span>
-                <input type="text" name="address" placeholder="רחוב, עיר" required />
-              </label>
-              <label>
-                <span>מבצע הסקר</span>
-                <input type="text" name="inspector" placeholder="שם מלא" required />
-              </label>
-              <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredential" placeholder="אופציונלי" /></label>
-              <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
-              <label><span>החייב בנגישות</span><input type="text" name="liableParty" placeholder="שם בעלים / שוכר / רשות" /></label>
-              <label><span>תפקיד החייב</span><input type="text" name="liableRole" placeholder="בעלים, מנהל נכס וכו׳" /></label>
-              <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationId" /></label>
-              <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficer" /></label>
-              <label>
-                <span>מיקום GPS</span>
-                <div class="field-with-action">
-                  <input type="text" name="gps" placeholder="31.778, 35.235" />
-                  <button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button>
-                </div>
-              </label>
-              <label class="full">
-                <span>הערות פתיחה</span>
-                <textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea>
-              </label>
-              <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
-              <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
-              <label data-help="מסווג את המסמך המצורף כדי שיהיה אפשר להבין אם הוא היתר, פטור, התאמה חלופית או דוח קודם. יש לציין גם אסמכתה ותוקף כאשר קיימים."><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
-              <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>
-              <label class="full"><span>צירוף מסמכים מקומיים</span><input class="inspection-documents" type="file" multiple accept="image/*,application/pdf,.doc,.docx" /><small class="muted">המסמכים נשמרים במכשיר זה בלבד ונכללים בגיבוי JSON.</small></label>
-              <label class="full" data-help="תעד במפורש אזורים, רכיבים או מסמכים שלא נבדקו ולמה. מידע זה יוצג בדוח כדי למנוע מצג של כיסוי מלא."><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
-              <div class="full form-actions">
-                <button type="submit">צור ביקורת</button>
+              <p id="inspection-flow-hint" class="full inspection-flow-hint">בחר אשכול, סוג אתר/שירות ומסלול תחולה כדי לפתוח רק את פרטי הסקר הרלוונטיים.</p>
+              <div id="inspection-details" class="full inspection-details" hidden>
+                <div class="full form-section-title">פרטי ביקורת בסיסיים</div>
+                <p id="inspection-path-summary" class="full muted small"></p>
+                <label><span>שם אתר</span><input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required /></label>
+                <label><span>כתובת</span><input type="text" name="address" placeholder="רחוב, עיר" required /></label>
+                <label><span>מבצע הסקר</span><input type="text" name="inspector" placeholder="שם מלא" required /></label>
+                <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
+                <label><span>מיקום GPS</span><div class="field-with-action"><input type="text" name="gps" placeholder="31.778, 35.235" /><button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button></div></label>
+                <label class="full"><span>הערות פתיחה</span><textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea></label>
+
+                <section class="full inspection-subsection" data-clusters="built">
+                  <h4>נתוני מבנה ותחולה</h4>
+                  <label data-help="מסייע להבחין בין מבנה קיים, מבנה חדש ושינוי מהותי. הבחירה משפיעה על מסלול התחולה ודורשת אימות מול ההיתר והדין."><span>מצב המבנה</span><select name="buildingStatus"><option value="existing">בניין קיים</option><option value="new">בניין חדש</option><option value="major_change">שינוי מהותי בבניין קיים</option></select></label>
+                  <label><span>שנת הקמה</span><input type="number" name="constructionYear" min="1800" max="2100" /></label>
+                  <label><span>שנת היתר</span><input type="number" name="permitYear" min="1800" max="2100" /></label>
+                  <label><span>שנת שינוי ייעוד / שיפוץ</span><input type="number" name="majorChangeYear" min="1800" max="2100" /></label>
+                  <label><span>ייעוד בפועל</span><input type="text" name="actualUse" placeholder="למשל: מרכז קבלת קהל" /></label>
+                  <label><span>ייעוד בהיתר</span><input type="text" name="permittedUse" placeholder="אם ידוע" /></label>
+                  <label><span>שטח עיקרי במ״ר</span><input type="number" name="mainArea" min="0" /></label>
+                  <label><span>מספר מפלסים</span><input type="number" name="levels" min="0" /></label>
+                  <label><span>קיבולת קהל</span><input type="number" name="publicCapacity" min="0" /></label>
+                  <fieldset class="full compact-fieldset"><legend>רכיבים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label></fieldset>
+                </section>
+
+                <section class="full inspection-subsection" data-site-types="accommodation">
+                  <h4>נתוני אירוח</h4>
+                  <label><span>מספר חדרי אירוח</span><input type="number" name="accommodationRoomTotal" min="0" /></label>
+                  <label><span>מספר חדרים נגישים נדרש</span><input type="number" name="accessibleRoomsRequired" min="0" /></label>
+                  <label><span>מספר חדרים נגישים קיים</span><input type="number" name="accessibleRoomsExisting" min="0" /></label>
+                </section>
+
+                <section class="full inspection-subsection" data-clusters="service digital special">
+                  <h4>פרטי נותן השירות</h4>
+                  <label><span>החייב בנגישות</span><input type="text" name="liableParty" placeholder="שם בעלים / שוכר / רשות" /></label>
+                  <label><span>תפקיד החייב</span><input type="text" name="liableRole" placeholder="בעלים, מנהל נכס וכו׳" /></label>
+                  <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationId" /></label>
+                  <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficer" /></label>
+                  <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredential" placeholder="אופציונלי" /></label>
+                  <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
+                </section>
+
+                <details class="full advanced-details">
+                  <summary>פרטים מתקדמים ומסמכים</summary>
+                  <div class="form-grid">
+                    <label><span>החייב בנגישות</span><input type="text" name="liablePartyFallback" placeholder="אם לא הוזן למעלה" /></label>
+                    <label><span>תפקיד החייב</span><input type="text" name="liableRoleFallback" placeholder="בעלים, מנהל נכס וכו׳" /></label>
+                    <label><span>ח.פ. / מזהה ארגון</span><input type="text" name="organizationIdFallback" /></label>
+                    <label><span>ממונה נגישות ארגוני</span><input type="text" name="accessibilityOfficerFallback" /></label>
+                    <label><span>מספר תעודה / הכשרה</span><input type="text" name="inspectorCredentialFallback" placeholder="אם לא הוזן למעלה" /></label>
+                    <fieldset class="full compact-fieldset"><legend>רכיבים ומסמכים קיימים</legend><label><input type="checkbox" name="requiredFacilities" value="elevator" /> מעלית</label><label><input type="checkbox" name="requiredFacilities" value="parking" /> חניון</label><label><input type="checkbox" name="requiredFacilities" value="accessible_toilet" /> שירותים נגישים</label><label><input type="checkbox" name="requiredFacilities" value="accessible_counter" /> עמדת שירות נגישה</label><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
+                    <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
+                    <label data-help="מסווג את המסמך המצורף כדי שיהיה אפשר להבין אם הוא היתר, פטור, התאמה חלופית או דוח קודם. יש לציין גם אסמכתה ותוקף כאשר קיימים."><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
+                    <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>
+                    <label class="full"><span>צירוף מסמכים מקומיים</span><input class="inspection-documents" type="file" multiple accept="image/*,application/pdf,.doc,.docx" /><small class="muted">המסמכים נשמרים במכשיר זה בלבד ונכללים בגיבוי JSON.</small></label>
+                    <label class="full" data-help="תעד במפורש אזורים, רכיבים או מסמכים שלא נבדקו ולמה. מידע זה יוצג בדוח כדי למנוע מצג של כיסוי מלא."><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
+                  </div>
+                </details>
+                <div class="full form-actions"><button type="submit">צור ביקורת</button></div>
               </div>
             </form>
           </div>
