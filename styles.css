@@ -705,11 +705,7 @@ dialog::backdrop {
 }
 
 .accessibility-toggle {
-  position: fixed;
-  inset-inline-start: 1rem;
-  bottom: 1rem;
-  z-index: 20;
-  box-shadow: 0 8px 20px rgba(3, 66, 60, 0.22);
+  white-space: nowrap;
 }
 
 .accessibility-panel {
