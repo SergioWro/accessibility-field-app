@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.16.1";
+const APP_VERSION = "1.16.2";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.32",
+    title: "SRD נגיצ'ק v3.33",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -2359,7 +2359,7 @@ function renderIssues() {
                   <label><span>שם המאמת</span><input class="reinspection-verifier" type="text" value="${escapeHtml(issue.reinspectionVerifier || "")}" /></label>
                   <label><span>מדידה חוזרת</span><input class="reinspection-value" type="text" value="${escapeHtml(issue.reinspectionValue || "")}" placeholder="ערך לאחר תיקון" /></label>
                   <label><span>כלי מדידה חוזרת</span><input class="reinspection-tool" type="text" value="${escapeHtml(issue.reinspectionTool || "")}" /></label>
-                  <label class="full"><span>תמונת אחרי / ראיה חוזרת</span><input class="reinspection-photo" type="file" accept="image/*,video/*" capture="environment" /></label>
+                  <label class="full"><span>תמונת אחרי / ראיה חוזרת</span><input class="reinspection-photo" type="file" accept="image/*,video/*" /></label>
                   <div class="full"><button type="button" class="verify-close" data-issue-id="${issue.id}" data-help="סגירת ליקוי מתאפשרת רק לאחר תאריך אימות, שם מאמת, מדידה חוזרת וכלי מדידה. אפשר לצרף גם ראיית אחרי מקומית.">${issue.verificationCompleted ? "אימות הושלם" : "אשר אימות וסגור ליקוי"}</button></div>
                 </div>
               </details>

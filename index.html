@@ -440,10 +440,10 @@
           </details>
           <label class="file-picker">
             <span>ראיה 1: הקשר כללי</span>
-            <input type="file" class="issue-photo" accept="image/*" capture="environment" />
+            <input type="file" class="issue-photo" accept="image/*" />
             <span class="file-picker-button">בחר צילום</span>
             <span class="file-picker-name muted small">לא נבחר צילום</span>
-            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר. לאחר הבחירה ניתן לנתח מיד עם AI.</small>
+            <small class="muted">בטלפון אפשר לבחור צילום שמור או לצלם צילום חדש. לאחר הבחירה ניתן לנתח מיד עם AI.</small>
           </label>
           <img class="issue-photo-preview hidden" alt="תצוגה מקדימה של ראיה 1" />
           <div class="full ai-actions">
@@ -477,8 +477,8 @@
           <label><span>אחראי לתיקון</span><input class="issue-liable-party" type="text" placeholder="בעלים / שוכר / רשות / קבלן" /></label>
           <label><span>עלות גסה</span><input class="estimated-cost" type="text" placeholder="לא ידוע / טווח משוער" /></label>
           <label><span>נדרש היתר?</span><select class="permit-needed"><option value="unknown">לא ידוע</option><option value="no">לא</option><option value="yes">כן</option></select></label>
-          <label class="file-picker"><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" capture="environment" /><span class="file-picker-button">בחר צילום</span><span class="file-picker-name muted small">לא נבחר צילום</span></label>
-          <label class="file-picker"><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" capture="environment" /><span class="file-picker-button">בחר קובץ</span><span class="file-picker-name muted small">לא נבחר קובץ</span></label>
+          <label class="file-picker"><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" /><span class="file-picker-button">בחר צילום</span><span class="file-picker-name muted small">לא נבחר צילום</span></label>
+          <label class="file-picker"><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" /><span class="file-picker-button">בחר קובץ</span><span class="file-picker-name muted small">לא נבחר קובץ</span></label>
           <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
           <div class="full issue-flow-actions">
             <button type="button" class="save-issue-next">שמור ליקוי והמשך לפריט הבא</button>
