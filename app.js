@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.15.7";
+const APP_VERSION = "1.15.9";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.28",
+    title: "SRD נגיצ'ק v3.30",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -668,6 +668,7 @@ let storageStatusTimer = null;
 let activeHelpTrigger = null;
 let helpTriggerSequence = 0;
 let showIssuesOnly = false;
+let comparisonVisible = false;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -705,6 +706,8 @@ const els = {
   inspectionClosure: document.getElementById("inspection-closure"),
   inspectionClosureForm: document.getElementById("inspection-closure-form"),
   previousInspectionContent: document.getElementById("previous-inspection-content"),
+  previousInspectionComparison: document.getElementById("previous-inspection-comparison"),
+  openComparison: document.getElementById("open-comparison"),
   trainingRecordForm: document.getElementById("training-record-form"),
   trainingRecords: document.getElementById("training-records"),
   settingsForm: document.getElementById("settings-form"),
@@ -877,12 +880,18 @@ function bindEvents() {
   });
   els.inspectionForm.siteType.addEventListener("change", updateInspectionDetails);
   els.inspectionForm.applicabilityProfile.addEventListener("change", updateInspectionDetails);
+  els.inspectionForm.surveyType.addEventListener("change", updateInspectionDetails);
   els.statusFilter.addEventListener("change", renderIssues);
   [els.issueSearch, els.responsibleFilter, els.dueFilter, els.reinspectionFilter].forEach((control) => {
     control.addEventListener(control === els.issueSearch ? "input" : "change", renderIssues);
   });
   els.clearIssueFilters.addEventListener("click", clearIssueFilters);
   els.prepareReinspection.addEventListener("click", prepareReinspection);
+  els.openComparison.addEventListener("click", () => {
+    comparisonVisible = !comparisonVisible;
+    els.openComparison.textContent = comparisonVisible ? "הסתר השוואה" : "ביקורת חוזרת והשוואה";
+    renderPreviousInspectionComparison();
+  });
   els.settingsForm.addEventListener("submit", handleSaveSettings);
   els.seedDemo.addEventListener("click", seedDemoData);
   els.clearData.addEventListener("click", resetData);
@@ -1125,10 +1134,12 @@ function updateInspectionDetails() {
     const clusters = (section.dataset.clusters || "").split(" ").filter(Boolean);
     const siteTypes = (section.dataset.siteTypes || "").split(" ").filter(Boolean);
     const profiles = (section.dataset.profiles || "").split(" ").filter(Boolean);
+    const surveyTypes = (section.dataset.surveyTypes || "").split(" ").filter(Boolean);
     const clusterMatches = !clusters.length || clusters.includes(cluster.value);
     const siteTypeMatches = !siteTypes.length || siteTypes.includes(siteType.value);
     const profileMatches = !profiles.length || profiles.includes(applicabilityProfile.value);
-    const applies = clusterMatches && siteTypeMatches && profileMatches;
+    const surveyTypeMatches = !surveyTypes.length || surveyTypes.includes(els.inspectionForm.surveyType.value);
+    const applies = clusterMatches && siteTypeMatches && profileMatches && surveyTypeMatches;
     section.hidden = !applies;
     setFormControlsEnabled(section, applies);
   });
@@ -1172,6 +1183,12 @@ async function handleCreateInspection(event) {
     inspector: value("inspector"),
     gps: value("gps"),
     notes: value("notes"),
+    complaintReference: value("complaintReference"),
+    complaintReceivedAt: value("complaintReceivedAt"),
+    complaintChannel: value("complaintChannel"),
+    complaintContact: value("complaintContact"),
+    complaintAnonymous: formData.get("complaintAnonymous") === "on",
+    complaintDetails: value("complaintDetails"),
     buildingStatus: value("buildingStatus"),
     constructionYear: value("constructionYear"),
     permitYear: value("permitYear"),
@@ -1553,7 +1570,16 @@ function getActiveInspection() {
 
 function renderPreviousInspectionComparison() {
   const inspection = getActiveInspection();
-  if (!inspection) return;
+  if (!inspection || !comparisonIsAvailable()) {
+    comparisonVisible = false;
+    els.previousInspectionComparison.classList.add("hidden");
+    return;
+  }
+  if (!comparisonVisible) {
+    els.previousInspectionComparison.classList.add("hidden");
+    return;
+  }
+  els.previousInspectionComparison.classList.remove("hidden");
   const comparableInspections = state.inspections
     .filter((item) => item.id !== inspection.id && normalizeSearchText(item.address) === normalizeSearchText(inspection.address) && new Date(item.createdAt) < new Date(inspection.createdAt))
     .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
@@ -1562,7 +1588,7 @@ function renderPreviousInspectionComparison() {
     els.previousInspectionContent.innerHTML = `<div class="list-row">לא נמצאה ביקורת קודמת לאותה כתובת במכשיר זה.</div>`;
     return;
   }
-  const currentIssues = state.issues.filter((issue) => issue.inspectionId === inspection.id);
+  const currentIssues = state.issues.filter((issue) => issue.inspectionId === inspection.id && issue.lifecycle === "pending_verification");
   const previousIssues = state.issues.filter((issue) => issue.inspectionId === previous.id);
   const rows = currentIssues.map((issue) => {
     const prior = previousIssues.find((item) => (issue.elementId && item.elementId === issue.elementId) || item.checklistId === issue.checklistId);
@@ -1573,9 +1599,19 @@ function renderPreviousInspectionComparison() {
     ${rows.length ? rows.join("") : `<div class="list-row">טרם נוצרו ליקויים בביקורת הנוכחית להשוואה.</div>`}`;
   els.previousInspectionContent.querySelector(".open-previous-inspection")?.addEventListener("click", (event) => {
     state.activeInspectionId = event.currentTarget.dataset.inspectionId;
+    comparisonVisible = false;
     saveState("previous_inspection_opened");
     render();
+    navigateToView("inspection");
   });
+}
+
+function comparisonIsAvailable() {
+  const inspection = getActiveInspection();
+  if (!inspection) return false;
+  const hasPendingVerification = state.issues.some((issue) => issue.inspectionId === inspection.id && issue.lifecycle === "pending_verification" && !issue.verificationCompleted);
+  const hasPreviousInspection = state.inspections.some((item) => item.id !== inspection.id && normalizeSearchText(item.address) === normalizeSearchText(inspection.address) && new Date(item.createdAt) < new Date(inspection.createdAt));
+  return hasPendingVerification && hasPreviousInspection;
 }
 
 function completeInspection(event) {
@@ -1749,6 +1785,10 @@ function saveCorrectionReport() {
     `תאריך ביקורת: ${formatDate(inspection.createdAt)}`,
     `כתובת: ${inspection.address}`,
     `סוג בדיקה: ${surveyTypeLabel(inspection.surveyType)}`,
+    ...(inspection.surveyType === "resident_report" ? [
+      `פרטי פנייה: ${inspection.complaintReference || "ללא מספר פנייה"} | התקבלה: ${inspection.complaintReceivedAt || "ללא תאריך"} | ערוץ: ${complaintChannelLabel(inspection.complaintChannel)}`,
+      `דיווח התושב: ${inspection.complaintAnonymous ? "אנונימי" : inspection.complaintContact || "פרטי קשר לא נמסרו"} | תיאור: ${inspection.complaintDetails || "לא נמסר"}`,
+    ] : []),
     `מבצע הסקר: ${inspection.inspector}${inspection.inspectorCredential ? ` | הכשרה/תעודה: ${inspection.inspectorCredential}` : ""}`,
     `החייב בנגישות: ${inspection.liableParty || "לא הוגדר"}${inspection.liableRole ? ` | ${inspection.liableRole}` : ""}`,
     `היקף ומגבלות: ${inspection.scopeLimitations || "לא נמסרו מגבלות"}`,
@@ -1813,7 +1853,10 @@ function printCorrectionReport() {
   }
   printWindow.opener = null;
   const documents = (inspection.documents || []).map((document) => `${document.type}: ${document.name} (${document.reference || "ללא אסמכתה"})`).join(" | ") || "לא צורפו מסמכי בסיס";
-  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}article.open{border-color:#e1aaa4;border-right-color:#a6362b;background:#fff3f1}article.resolved,.resolved-summary{border-color:#8ac8b9;border-right-color:#0e5f5c;background:#edf8f4}.status{font-weight:700}.open .status{color:#a6362b}.resolved .status{color:#0e5f5c}.resolved-summary{border:1px solid #8ac8b9;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח סקר ותיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p><p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p><p><strong>מסמכי בסיס מקומיים:</strong> ${escapeHtml(documents)}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
+  const complaintSummary = inspection.surveyType === "resident_report"
+    ? `<p><strong>מקור הפנייה:</strong> ${escapeHtml(inspection.complaintReference || "ללא מספר פנייה")} | ${escapeHtml(inspection.complaintReceivedAt || "ללא תאריך")} | ${escapeHtml(complaintChannelLabel(inspection.complaintChannel))}</p><p><strong>דיווח תושב:</strong> ${escapeHtml(inspection.complaintAnonymous ? "אנונימי" : inspection.complaintContact || "פרטי קשר לא נמסרו")} | ${escapeHtml(inspection.complaintDetails || "לא נמסר")}</p>`
+    : "";
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח תיקונים - ${escapeHtml(inspection.siteName)}</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}article.open{border-color:#e1aaa4;border-right-color:#a6362b;background:#fff3f1}article.resolved,.resolved-summary{border-color:#8ac8b9;border-right-color:#0e5f5c;background:#edf8f4}.status{font-weight:700}.open .status{color:#a6362b}.resolved .status{color:#0e5f5c}.resolved-summary{border:1px solid #8ac8b9;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px}p{margin:7px 0}.note{margin-top:24px;font-size:12px;color:#445}@media print{body{margin:16mm}}</style></head><body><h1>דוח סקר ותיקון ממצאים</h1><p><strong>אתר:</strong> ${escapeHtml(inspection.siteName)}</p><p><strong>תאריך ביצוע הביקורת:</strong> ${escapeHtml(formatDate(inspection.createdAt))}</p><p><strong>סוג בדיקה:</strong> ${escapeHtml(surveyTypeLabel(inspection.surveyType))}</p>${complaintSummary}<p><strong>מבצע:</strong> ${escapeHtml(inspection.inspector)} ${inspection.inspectorCredential ? `| ${escapeHtml(inspection.inspectorCredential)}` : ""}</p><p><strong>היקף ומגבלות:</strong> ${escapeHtml(inspection.scopeLimitations || "לא נמסרו מגבלות")}</p><p><strong>מסמכי בסיס מקומיים:</strong> ${escapeHtml(documents)}</p>${rows}<p class="note">המסמך הוא תיעוד סקר מקומי ואינו תחליף לתכנון סטטוטורי, לאישור מכון התקנים או לחוות דעת מוסמכת כאשר הדין מחייב זאת.</p></body></html>`);
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 250);
@@ -2217,6 +2260,10 @@ function archiveIssue(issueId, reviewStatus) {
 }
 
 function renderIssues() {
+  const comparisonAvailable = comparisonIsAvailable();
+  els.openComparison.classList.toggle("hidden", !comparisonAvailable);
+  if (!comparisonAvailable) comparisonVisible = false;
+  els.openComparison.textContent = comparisonVisible ? "הסתר השוואה" : "ביקורת חוזרת והשוואה";
   populateResponsibleFilter();
   const filter = els.statusFilter.value;
   const query = normalizeSearchText(els.issueSearch.value);
@@ -2774,7 +2821,11 @@ function applicabilityProfileLabel(id, clusterId) {
 }
 
 function surveyTypeLabel(value) {
-  return { self: "בדיקה עצמית של החייב", internal: "סקר ממונה פנימי", external: "חוות דעת חיצונית" }[value] || "לא צוין";
+  return { self: "בדיקה עצמית של החייב", internal: "סקר ממונה פנימי", external: "חוות דעת חיצונית", resident_report: "דיווח תושב / פנייה מהציבור" }[value] || "לא צוין";
+}
+
+function complaintChannelLabel(value) {
+  return { phone: "טלפון", email: "דוא״ל", form: "טופס מקוון", in_person: "פנייה אישית", other: "אחר" }[value] || "לא צוין";
 }
 
 function statusText(status) {

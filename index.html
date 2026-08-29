@@ -85,9 +85,19 @@
                 <label><span>שם אתר</span><input type="text" name="siteName" placeholder="למשל: מרכז שירות יפו" required /></label>
                 <label><span>כתובת</span><input type="text" name="address" placeholder="רחוב, עיר" required /></label>
                 <label><span>מבצע הסקר</span><input type="text" name="inspector" placeholder="שם מלא" required /></label>
-                <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option></select></label>
+                <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option><option value="resident_report">דיווח תושב / פנייה מהציבור</option></select></label>
                 <label><span>מיקום GPS</span><div class="field-with-action"><input type="text" name="gps" placeholder="31.778, 35.235" /><button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button></div></label>
                 <label class="full"><span>הערות פתיחה</span><textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea></label>
+
+                <section class="full inspection-subsection" data-survey-types="resident_report">
+                  <h4>פרטי דיווח תושב / פנייה מהציבור</h4>
+                  <label><span>מספר פנייה</span><input type="text" name="complaintReference" placeholder="אם קיים" /></label>
+                  <label><span>תאריך קבלת הפנייה</span><input type="date" name="complaintReceivedAt" /></label>
+                  <label><span>אופן הפנייה</span><select name="complaintChannel"><option value="">לא צוין</option><option value="phone">טלפון</option><option value="email">דוא״ל</option><option value="form">טופס מקוון</option><option value="in_person">פנייה אישית</option><option value="other">אחר</option></select></label>
+                  <label><span>פרטי קשר לפנייה</span><input type="text" name="complaintContact" placeholder="אופציונלי; השמירה מקומית בלבד" /></label>
+                  <label class="full checkbox-line"><input type="checkbox" name="complaintAnonymous" /> הפנייה אנונימית או שאין לשמור פרטי קשר</label>
+                  <label class="full"><span>תיאור הדיווח</span><textarea name="complaintDetails" rows="3" placeholder="מה דווח, היכן ומתי; הדיווח הוא עילה לבדיקה ואינו קביעה מקצועית"></textarea></label>
+                </section>
 
                 <section class="full inspection-subsection" data-clusters="built" data-profiles="existing_public_building new_public_building new_residential">
                   <h4>נתוני מבנה ותחולה</h4>
@@ -166,10 +176,6 @@
               </div>
               <div id="checklist-container" class="checklist"></div>
             </section>
-            <section id="previous-inspection-comparison" class="panel" aria-labelledby="comparison-title">
-              <div class="panel-head"><div><p class="eyebrow">Comparison</p><h4 id="comparison-title">השוואה לביקורת קודמת</h4></div></div>
-              <div id="previous-inspection-content" class="stack-list"></div>
-            </section>
             <section id="inspection-closure" class="panel hidden" aria-labelledby="closure-title">
               <div class="panel-head"><div><p class="eyebrow">Closure</p><h4 id="closure-title">סיום ואישור הפצת סקר</h4><p class="muted small">הסקר יישאר מקומי. הסיום מתעד את גבולות הבדיקה ואינו מחליף אישור סטטוטורי.</p></div></div>
               <form id="inspection-closure-form" class="form-grid">
@@ -214,6 +220,7 @@
               <button id="import-json" class="ghost" data-help="בייבוא תוצג בחירה: מיזוג בטוח שמוסיף רשומות חדשות, או החלפה מלאה של הנתונים המקומיים. צור גיבוי לפני החלפה.">ייבוא גיבוי</button>
               <input id="import-json-file" class="hidden" type="file" accept="application/json,.json" />
               <button id="export-csv" class="ghost">ייצוא CSV</button>
+              <button id="open-comparison" class="ghost hidden" type="button" data-help="הפעולה זמינה רק כאשר יש ביקורת קודמת לאותה כתובת וליקוי שממתין לאימות לאחר תיקון. היא מציגה השוואה ואינה סוגרת ליקוי.">ביקורת חוזרת והשוואה</button>
             </div>
           </div>
           <div class="issue-filter-bar" aria-label="סינון וחיפוש ליקויים">
@@ -242,6 +249,10 @@
             <button id="clear-issue-filters" class="ghost" type="button">נקה סינון</button>
           </div>
           <p id="issue-filter-summary" class="muted small" aria-live="polite"></p>
+          <section id="previous-inspection-comparison" class="panel hidden" aria-labelledby="comparison-title">
+            <div class="panel-head"><div><p class="eyebrow">Comparison</p><h4 id="comparison-title">השוואה לביקורת קודמת</h4><p class="muted small">השוואה לתמיכה באימות לאחר תיקון; אינה מחליפה בדיקה בשטח.</p></div></div>
+            <div id="previous-inspection-content" class="stack-list"></div>
+          </section>
           <div id="issues-list" class="issue-grid"></div>
         </section>
 
