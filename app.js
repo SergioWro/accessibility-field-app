@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.15.4";
+const APP_VERSION = "1.15.5";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.25",
+    title: "SRD נגיצ'ק v3.26",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -1488,7 +1488,9 @@ function renderActiveInspection() {
     });
 
     analyzeButton.addEventListener("click", async () => {
-      if (!photoInput.files[0]) {
+      const issue = state.issues.find((entry) => entry.id === item.issueId);
+      const photoForAnalysis = await photoFileForAnalysis(photoInput, issue);
+      if (!photoForAnalysis) {
         aiResult.textContent = "יש לבחור צילום לפני ניתוח AI.";
         return;
       }
@@ -1501,20 +1503,20 @@ function renderActiveInspection() {
       analyzeButton.disabled = true;
       aiResult.textContent = "מכין את הצילום לניתוח...";
       try {
-        const assessment = await analyzePhotoWithOpenAI(photoInput.files[0], inspection, item, (message) => {
+        const assessment = await analyzePhotoWithOpenAI(photoForAnalysis, inspection, item, (message) => {
           aiResult.textContent = message;
         });
-        const issue = state.issues.find((entry) => entry.id === item.issueId);
-        if (issue) {
-          issue.aiStatus = "PENDING_HUMAN_REVIEW";
-          issue.aiAssessment = assessment;
+        const updatedIssue = state.issues.find((entry) => entry.id === item.issueId);
+        if (updatedIssue) {
+          updatedIssue.aiStatus = "PENDING_HUMAN_REVIEW";
+          updatedIssue.aiAssessment = assessment;
           if (!descriptionInput.value && assessment.observation) {
             descriptionInput.value = assessment.observation;
-            issue.description = assessment.observation;
+            updatedIssue.description = assessment.observation;
           }
           saveState("photo_analyzed_with_ai");
         }
-        renderAiAssessment(issue, aiResult, aiReviewControls);
+        renderAiAssessment(updatedIssue, aiResult, aiReviewControls);
         renderIssues();
         renderSystemStatus("ניתוח AI התקבל וממתין לאישור אנושי.");
       } catch (error) {
@@ -2047,6 +2049,18 @@ function renderIssuePhotoPreview(issue, element) {
   }
   element.src = issue.photoDataUrl;
   element.classList.remove("hidden");
+}
+
+async function photoFileForAnalysis(input, issue) {
+  if (input.files?.[0]) return input.files[0];
+  if (!issue?.photoDataUrl) return null;
+  try {
+    const response = await fetch(issue.photoDataUrl);
+    const blob = await response.blob();
+    return new File([blob], issue.photoName || "issue-photo.jpg", { type: blob.type || "image/jpeg" });
+  } catch {
+    return null;
+  }
 }
 
 function fileToDataUrl(file) {

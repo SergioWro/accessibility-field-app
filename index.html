@@ -412,6 +412,19 @@
             <p class="regulatory-need"></p>
             <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
           </details>
+          <label class="file-picker">
+            <span>ראיה 1: הקשר כללי</span>
+            <input type="file" class="issue-photo" accept="image/*" capture="environment" />
+            <span class="file-picker-button">בחר צילום</span>
+            <span class="file-picker-name muted small">לא נבחר צילום</span>
+            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר. לאחר הבחירה ניתן לנתח מיד עם AI.</small>
+          </label>
+          <img class="issue-photo-preview hidden" alt="תצוגה מקדימה של ראיה 1" />
+          <div class="full ai-actions">
+            <button type="button" class="analyze-photo" data-help="שולח את ראיה 1 ל-OpenAI רק לאחר לחיצה מפורשת ורק אם הוזן מפתח לסשן זה. התוצאה היא הצעה לבדיקה אנושית ואינה קביעה מקצועית סופית.">נתח את הצילום עם AI</button>
+            <p class="ai-result muted small" aria-live="polite"></p>
+            <div class="ai-review-controls hidden" aria-live="polite"></div>
+          </div>
           <label>
             <span>חומרה</span>
             <select class="severity-select">
@@ -438,22 +451,9 @@
           <label><span>אחראי לתיקון</span><input class="issue-liable-party" type="text" placeholder="בעלים / שוכר / רשות / קבלן" /></label>
           <label><span>עלות גסה</span><input class="estimated-cost" type="text" placeholder="לא ידוע / טווח משוער" /></label>
           <label><span>נדרש היתר?</span><select class="permit-needed"><option value="unknown">לא ידוע</option><option value="no">לא</option><option value="yes">כן</option></select></label>
-          <label class="file-picker">
-            <span>ראיה 1: הקשר כללי</span>
-            <input type="file" class="issue-photo" accept="image/*" capture="environment" />
-            <span class="file-picker-button">בחר צילום</span>
-            <span class="file-picker-name muted small">לא נבחר צילום</span>
-            <small class="muted">בטלפון, בחירה בשדה פותחת את מצלמת המכשיר.</small>
-          </label>
-          <img class="issue-photo-preview hidden" alt="תצוגה מקדימה של ראיה 1" />
           <label class="file-picker"><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" capture="environment" /><span class="file-picker-button">בחר צילום</span><span class="file-picker-name muted small">לא נבחר צילום</span></label>
           <label class="file-picker"><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" capture="environment" /><span class="file-picker-button">בחר קובץ</span><span class="file-picker-name muted small">לא נבחר קובץ</span></label>
           <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
-          <div class="full ai-actions">
-            <button type="button" class="ghost analyze-photo" data-help="שולח את הצילום ל-OpenAI רק לאחר לחיצה מפורשת ורק אם הוזן מפתח לסשן זה. התוצאה היא הצעה לבדיקה אנושית ואינה קביעה מקצועית סופית.">נתח צילום עם AI</button>
-            <p class="ai-result muted small" aria-live="polite"></p>
-            <div class="ai-review-controls hidden" aria-live="polite"></div>
-          </div>
         </div>
       </article>
     </template>
