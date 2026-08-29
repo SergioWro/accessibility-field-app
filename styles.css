@@ -135,6 +135,19 @@ button.ghost {
   margin: 1.5rem 0;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.sidebar-footer p {
+  margin: 0.25rem 0;
+}
+
 .nav-link {
   display: block;
   text-align: right;
@@ -980,6 +993,11 @@ body.accessibility-underlined-links a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.4rem;
     margin: 1rem 0;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    font-size: 0.72rem;
   }
 
   .nav-link {
