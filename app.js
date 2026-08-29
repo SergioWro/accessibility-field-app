@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.15.9";
+const APP_VERSION = "1.16.0";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.30",
+    title: "SRD נגיצ'ק v3.31",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -1399,6 +1399,7 @@ function renderActiveInspection() {
   visibleChecklist.forEach((item) => {
     const fragment = els.checklistTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".check-item");
+    card.dataset.checklistId = item.id;
     const title = fragment.querySelector(".item-title");
     const meta = fragment.querySelector(".item-meta");
     const badge = fragment.querySelector(".badge");
@@ -1415,6 +1416,7 @@ function renderActiveInspection() {
     const evidenceInputs = [...fragment.querySelectorAll(".evidence-photo")];
     const evidenceSummary = fragment.querySelector(".evidence-summary");
     const captureIssueGps = fragment.querySelector(".capture-issue-gps");
+    const saveIssueNext = fragment.querySelector(".save-issue-next");
     const radios = [...fragment.querySelectorAll('input[type="radio"]')];
 
     title.textContent = item.title;
@@ -1503,6 +1505,25 @@ function renderActiveInspection() {
         return;
       }
       captureIssueLocation(issue, captureIssueGps);
+    });
+
+    saveIssueNext.addEventListener("click", () => {
+      createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
+      saveState("issue_saved_and_next_requested");
+      const currentIndex = inspection.checklist.findIndex((entry) => entry.id === item.id);
+      const nextItem = inspection.checklist[currentIndex + 1];
+      showIssuesOnly = false;
+      render();
+      if (!nextItem) {
+        renderSystemStatus("הליקוי נשמר. הגעת לסוף פריטי הביקורת.");
+        return;
+      }
+      window.requestAnimationFrame(() => {
+        const nextCard = [...els.checklistContainer.querySelectorAll(".check-item")].find((entry) => entry.dataset.checklistId === nextItem.id);
+        nextCard?.scrollIntoView({ behavior: "smooth", block: "start" });
+        nextCard?.querySelector('input[type="radio"]')?.focus();
+      });
+      renderSystemStatus("הליקוי נשמר. המשך לפריט הבא בביקורת.");
     });
 
     analyzeButton.addEventListener("click", async () => {

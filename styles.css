@@ -561,6 +561,19 @@ dialog::backdrop {
   align-items: center;
 }
 
+.issue-flow-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.issue-flow-actions p {
+  margin: 0;
+}
+
 .reinspection-panel {
   margin-top: 0.85rem;
   padding: 0.8rem;
@@ -1037,8 +1050,14 @@ body.accessibility-underlined-links a {
   .inspection-progress button,
   .evidence-actions button,
   .ai-actions button,
+  .issue-flow-actions button,
   .file-picker-button {
     width: 100%;
+  }
+
+  .issue-flow-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .check-item {
