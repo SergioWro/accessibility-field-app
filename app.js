@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.15.5";
+const APP_VERSION = "1.15.7";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.26",
+    title: "SRD נגיצ'ק v3.28",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -677,6 +677,7 @@ const els = {
     inspection: document.getElementById("inspection-view"),
     issues: document.getElementById("issues-view"),
     settings: document.getElementById("settings-view"),
+    management: document.getElementById("management-view"),
     sources: document.getElementById("sources-view"),
   },
   systemStatus: document.getElementById("system-status"),
@@ -1598,7 +1599,10 @@ function completeInspection(event) {
 async function saveTrainingRecord(event) {
   event.preventDefault();
   const inspection = getActiveInspection();
-  if (!inspection) return;
+  if (!inspection) {
+    renderSystemStatus("יש לפתוח ביקורת לפני שמירת תיעוד הדרכת נגישות.");
+    return;
+  }
   const formData = new FormData(event.currentTarget);
   const record = {
     id: crypto.randomUUID(),
@@ -1630,7 +1634,10 @@ async function saveTrainingRecord(event) {
 
 function renderTrainingRecords() {
   const inspection = getActiveInspection();
-  if (!inspection) return;
+  if (!inspection) {
+    els.trainingRecords.innerHTML = `<div class="list-row">פתח ביקורת כדי לשייך אליה תיעוד הדרכת נגישות.</div>`;
+    return;
+  }
   const records = inspection.trainingRecords || [];
   els.trainingRecords.innerHTML = records.length
     ? records.map((record) => `<div class="list-row"><div><strong>${escapeHtml(record.role || "הדרכת נגישות")}</strong><div class="muted small">${escapeHtml(record.date || "ללא תאריך")} · ${escapeHtml(record.owner || "אחראי לא צוין")} · ${escapeHtml(record.details || "ללא פירוט")}${record.evidence ? ` · ראיה: ${escapeHtml(record.evidence.name)}` : ""}</div></div></div>`).join("")

@@ -22,6 +22,7 @@
         </div>
         <nav class="nav" aria-label="ניווט ראשי">
           <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
+          <a class="nav-link" data-view="management" href="#management">ניהול ארגוני</a>
           <a class="nav-link" data-view="inspection" href="#inspection">ביקורת חדשה</a>
           <a class="nav-link is-active" data-view="dashboard" href="#dashboard">לוח בקרה</a>
           <a class="nav-link" data-view="issues" href="#issues">ליקויים</a>
@@ -178,18 +179,6 @@
                 <div class="full form-actions"><button type="submit">אשר סיום סקר</button></div>
               </form>
             </section>
-            <section class="panel" aria-labelledby="training-title">
-              <div class="panel-head"><div><p class="eyebrow">Service</p><h4 id="training-title">תיעוד הדרכת נגישות</h4></div></div>
-              <form id="training-record-form" class="form-grid">
-                <label><span>תאריך הדרכה</span><input name="trainingDate" type="date" /></label>
-                <label><span>תפקיד / קהל יעד</span><input name="trainingRole" type="text" placeholder="למשל: צוות קבלה" /></label>
-                <label><span>מנחה / אחראי</span><input name="trainingOwner" type="text" /></label>
-                <label class="full"><span>משתתפים ותוכן ההדרכה</span><textarea name="trainingDetails" rows="2" placeholder="מספר משתתפים, נושאים והחלטות"></textarea></label>
-                <label class="full"><span>ראיה מצורפת (אופציונלי)</span><input name="trainingEvidence" type="file" accept="image/*,application/pdf" /></label>
-                <div class="full form-actions"><button type="submit" class="ghost">שמור תיעוד הדרכה</button></div>
-              </form>
-              <div id="training-records" class="stack-list"></div>
-            </section>
             <section id="correction-report" class="panel hidden" aria-live="polite">
               <div class="panel-head">
                 <div>
@@ -327,6 +316,28 @@
               <p class="muted small">תמונות נדחסות מקומית לפני שמירתן. שמור גיבוי מלא מדי פעם, ובחר גיבוי ללא תמונות להעברה קלה יותר.</p>
             </section>
           </div>
+        </section>
+
+        <section id="management-view" class="view" aria-labelledby="management-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Management</p>
+              <h3 id="management-title">ניהול ארגוני</h3>
+              <p class="muted">תיעוד מקומי של פעולות ארגוניות, מופרד מביצוע הביקורת בשטח.</p>
+            </div>
+          </div>
+          <section class="panel" aria-labelledby="training-title">
+            <div class="panel-head"><div><p class="eyebrow">Training</p><h4 id="training-title">תיעוד הדרכת נגישות</h4><p class="muted small">הרשומה נשמרת מקומית ומשויכת לביקורת הפעילה, אם נפתחה.</p></div></div>
+            <form id="training-record-form" class="form-grid">
+              <label><span>תאריך הדרכה</span><input name="trainingDate" type="date" /></label>
+              <label><span>תפקיד / קהל יעד</span><input name="trainingRole" type="text" placeholder="למשל: צוות קבלה" /></label>
+              <label><span>מנחה / אחראי</span><input name="trainingOwner" type="text" /></label>
+              <label class="full"><span>משתתפים ותוכן ההדרכה</span><textarea name="trainingDetails" rows="2" placeholder="מספר משתתפים, נושאים והחלטות"></textarea></label>
+              <label class="full"><span>ראיה מצורפת (אופציונלי)</span><input name="trainingEvidence" type="file" accept="image/*,application/pdf" /></label>
+              <div class="full form-actions"><button type="submit" class="ghost">שמור תיעוד הדרכה</button></div>
+            </form>
+            <div id="training-records" class="stack-list"></div>
+          </section>
         </section>
 
         <section id="sources-view" class="view" aria-labelledby="sources-title">
