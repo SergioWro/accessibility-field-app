@@ -27,10 +27,6 @@
           <a class="nav-link" data-view="sources" href="#sources">מקורות מידע</a>
           <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
         </nav>
-        <section class="sync-card">
-          <h2>מצב מערכת</h2>
-          <dl id="system-status"></dl>
-        </section>
       </aside>
 
       <main id="main-content" class="main-content" tabindex="-1">
@@ -321,6 +317,10 @@
                 <li>מצבי Offline נשמרים מקומית ומסומנים בלוח המערכת.</li>
               </ul>
               <div id="settings-summary" class="note-box"></div>
+            </section>
+            <section class="sync-card" aria-labelledby="system-status-title">
+              <h2 id="system-status-title">מצב מערכת</h2>
+              <dl id="system-status"></dl>
             </section>
             <section class="panel" aria-labelledby="storage-title">
               <div class="panel-head"><div><p class="eyebrow">Storage</p><h4 id="storage-title">שמירה מקומית וגיבוי</h4></div><button id="request-persistent-storage" class="ghost" type="button" data-help="מבקש מהדפדפן להגן יותר על הנתונים המקומיים מפני מחיקה אוטומטית. אישור הבקשה נתון לדפדפן ולשטח האחסון הפנוי.">הגן על האחסון המקומי</button></div>
