@@ -620,6 +620,29 @@ dialog::backdrop {
   margin-top: 1rem;
 }
 
+.issue-fields > label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.inspection-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-strong);
+}
+
+.inspection-progress > div {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
 .regulatory-requirement {
   grid-column: 1 / -1;
   padding: 0.9rem 1rem;
@@ -631,6 +654,61 @@ dialog::backdrop {
 
 .regulatory-requirement p {
   margin: 0.45rem 0 0;
+}
+
+.regulatory-requirement summary {
+  cursor: pointer;
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+
+.regulatory-requirement[open] summary {
+  margin-bottom: 0.45rem;
+}
+
+.file-picker {
+  position: relative;
+  align-content: start;
+}
+
+.file-picker input[type="file"] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.file-picker-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  width: fit-content;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  color: var(--primary);
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-picker:focus-within .file-picker-button {
+  outline: 3px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.file-picker-name {
+  overflow-wrap: anywhere;
+}
+
+.issue-photo-preview {
+  max-width: min(100%, 360px);
+  max-height: 240px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  object-fit: cover;
 }
 
 .badge {
@@ -949,5 +1027,21 @@ body.accessibility-underlined-links a {
   .toolbar > button,
   .toolbar > select {
     flex: 1 1 140px;
+  }
+
+  .inspection-progress {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inspection-progress button,
+  .evidence-actions button,
+  .ai-actions button,
+  .file-picker-button {
+    width: 100%;
+  }
+
+  .check-item {
+    padding: 0.85rem;
   }
 }

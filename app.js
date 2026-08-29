@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.14.2";
+const APP_VERSION = "1.15.0";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -205,7 +205,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.20",
+    title: "SRD נגיצ'ק v3.21",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -667,6 +667,7 @@ let pendingImportedBackup = null;
 let storageStatusTimer = null;
 let activeHelpTrigger = null;
 let helpTriggerSequence = 0;
+let showIssuesOnly = false;
 
 const els = {
   navLinks: [...document.querySelectorAll(".nav-link")],
@@ -684,6 +685,9 @@ const els = {
   recentInspections: document.getElementById("recent-inspections"),
   inspectionForm: document.getElementById("inspection-form"),
   checklistContainer: document.getElementById("checklist-container"),
+  checklistProgress: document.getElementById("checklist-progress"),
+  checklistProgressDetail: document.getElementById("checklist-progress-detail"),
+  toggleIssuesOnly: document.getElementById("toggle-issues-only"),
   inspectionWorkspace: document.getElementById("inspection-workspace"),
   activeInspectionName: document.getElementById("active-inspection-name"),
   activeInspectionMeta: document.getElementById("active-inspection-meta"),
@@ -884,6 +888,10 @@ function bindEvents() {
   els.saveDraft.addEventListener("click", () => {
     saveState("draft_saved");
     renderSystemStatus("הטיוטה נשמרה מקומית.");
+  });
+  els.toggleIssuesOnly.addEventListener("click", () => {
+    showIssuesOnly = !showIssuesOnly;
+    renderActiveInspection();
   });
   els.completeInspection.addEventListener("click", () => {
     const inspection = getActiveInspection();
@@ -1356,8 +1364,21 @@ function renderActiveInspection() {
   els.activeInspectionName.textContent = inspection.siteName;
   els.activeInspectionMeta.textContent = `${siteTypeLabel(inspection.siteType)} · ${applicabilityProfileLabel(inspection.applicabilityProfile, inspection.cluster)} · ${inspection.address} · ${inspection.inspector} · ${inspection.status === "completed" ? "סקר הסתיים" : "טיוטה פעילה"}`;
   els.checklistContainer.innerHTML = "";
+  const reviewedCount = inspection.checklist.filter((item) => item.reviewStatus !== "unreviewed").length;
+  const issueCount = inspection.checklist.filter((item) => item.reviewStatus === "fail").length;
+  if (showIssuesOnly && issueCount === 0) showIssuesOnly = false;
+  els.checklistProgress.textContent = `נבדקו ${reviewedCount} מתוך ${inspection.checklist.length} פריטים`;
+  els.checklistProgressDetail.textContent = issueCount ? ` · ${issueCount} ליקויים פתוחים בביקורת זו` : " · לא סומנו ליקויים";
+  els.toggleIssuesOnly.disabled = issueCount === 0;
+  els.toggleIssuesOnly.textContent = showIssuesOnly ? "הצג את כל הפריטים" : "הצג ליקויים בלבד";
 
-  inspection.checklist.forEach((item) => {
+  const visibleChecklist = showIssuesOnly ? inspection.checklist.filter((item) => item.reviewStatus === "fail") : inspection.checklist;
+  if (!visibleChecklist.length) {
+    els.checklistContainer.innerHTML = '<p class="empty-state">אין ליקויים להצגה. אפשר לחזור לכל פריטי הבדיקה בכל עת.</p>';
+    return;
+  }
+
+  visibleChecklist.forEach((item) => {
     const fragment = els.checklistTemplate.content.cloneNode(true);
     const card = fragment.querySelector(".check-item");
     const title = fragment.querySelector(".item-title");
@@ -1367,6 +1388,7 @@ function renderActiveInspection() {
     const descriptionInput = fragment.querySelector(".issue-description");
     const severitySelect = fragment.querySelector(".severity-select");
     const photoInput = fragment.querySelector(".issue-photo");
+    const photoPreview = fragment.querySelector(".issue-photo-preview");
     const analyzeButton = fragment.querySelector(".analyze-photo");
     const aiResult = fragment.querySelector(".ai-result");
     const aiReviewControls = fragment.querySelector(".ai-review-controls");
@@ -1378,7 +1400,7 @@ function renderActiveInspection() {
     const radios = [...fragment.querySelectorAll('input[type="radio"]')];
 
     title.textContent = item.title;
-    meta.textContent = `${item.id} · ${item.threshold} · ${item.sourceRefs.join(", ")}`;
+    meta.textContent = `${item.id} · ${item.threshold}`;
     renderRegulatoryRequirement(inspection, item, regulatorySource, regulatoryNeed);
 
     if (item.reviewStatus !== "unreviewed") {
@@ -1431,16 +1453,21 @@ function renderActiveInspection() {
     });
 
     photoInput.addEventListener("change", async () => {
+      updateFilePickerName(photoInput);
       if (item.reviewStatus === "fail") {
         createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value, photoInput.files[0]);
         const issue = state.issues.find((entry) => entry.id === item.issueId);
-        if (issue && photoInput.files[0]) await storeIssueEvidence(issue, photoInput.files[0], "הקשר כללי");
+        if (issue && photoInput.files[0]) {
+          await storeIssueEvidence(issue, photoInput.files[0], "הקשר כללי");
+          renderIssuePhotoPreview(issue, photoPreview);
+        }
         saveState("issue_photo_attached");
       }
     });
 
     evidenceInputs.filter((input) => input !== photoInput).forEach((input) => {
       input.addEventListener("change", async () => {
+        updateFilePickerName(input);
         if (item.reviewStatus !== "fail" || !input.files[0]) return;
         createOrUpdateIssue(inspection, item, collectIssueDraft(issueFields), severitySelect.value);
         const issue = state.issues.find((entry) => entry.id === item.issueId);
@@ -1505,6 +1532,8 @@ function renderActiveInspection() {
         severitySelect.value = issue.severity;
         hydrateIssueDraft(issueFields, issue);
         renderEvidenceSummary(issue, evidenceSummary);
+        updateFilePickerName(photoInput, issue?.photoName);
+        renderIssuePhotoPreview(issue, photoPreview);
         if (issue.aiAssessment) {
           renderAiAssessment(issue, aiResult, aiReviewControls);
         }
@@ -2000,6 +2029,24 @@ async function storeIssueEvidence(issue, file, kind) {
 function renderEvidenceSummary(issue, element) {
   const evidence = issue?.evidence || [];
   element.textContent = evidence.length ? `תיק ראיות: ${evidence.length} קבצים נשמרו ללא דריסה. ${evidence.map((item) => `${item.kind}: ${item.fileName}`).join(" | ")}` : "תיק ראיות: טרם צורפו קבצים.";
+}
+
+function updateFilePickerName(input, savedName = "") {
+  const label = input.closest(".file-picker");
+  const nameElement = label?.querySelector(".file-picker-name");
+  if (!nameElement) return;
+  const selectedName = input.files?.[0]?.name || savedName;
+  nameElement.textContent = selectedName ? `נבחר: ${selectedName}` : (input.classList.contains("issue-photo") ? "לא נבחר צילום" : "לא נבחר קובץ");
+}
+
+function renderIssuePhotoPreview(issue, element) {
+  if (!issue?.photoDataUrl) {
+    element.removeAttribute("src");
+    element.classList.add("hidden");
+    return;
+  }
+  element.src = issue.photoDataUrl;
+  element.classList.remove("hidden");
 }
 
 function fileToDataUrl(file) {
