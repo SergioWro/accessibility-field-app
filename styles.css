@@ -517,9 +517,9 @@ dialog::backdrop {
 
 .help-trigger {
   display: inline-grid;
-  width: 1.55rem;
-  min-width: 1.55rem;
-  min-height: 1.55rem;
+  width: max(1.55rem, 24px);
+  min-width: max(1.55rem, 24px);
+  min-height: max(1.55rem, 24px);
   margin-inline-start: 0.35rem;
   padding: 0;
   place-items: center;
@@ -532,6 +532,17 @@ dialog::backdrop {
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.field-help-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.field-help-wrap > .help-trigger {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
 }
 
 .help-trigger:hover,
@@ -954,6 +965,17 @@ body.accessibility-high-contrast .hero {
 
 body.accessibility-underlined-links a {
   text-decoration: underline !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 .ai-review-controls {

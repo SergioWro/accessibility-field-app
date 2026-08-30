@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.22.0";
+const APP_VERSION = "1.23.0";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -232,7 +232,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.40",
+    title: "SRD נגיצ'ק v3.41",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -1134,8 +1134,15 @@ function initializeContextHelp(root = document) {
       event.stopPropagation();
       toggleContextHelp(target, trigger);
     });
-    const label = target.matches("label") ? target.querySelector(":scope > span") : null;
-    (label || target).insertAdjacentElement("afterend", trigger);
+    // Keep the help control outside a label so it cannot activate the labelled field.
+    if (target.matches("label, fieldset")) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `field-help-wrap${target.classList.contains("full") ? " full" : ""}`;
+      target.insertAdjacentElement("beforebegin", wrapper);
+      wrapper.append(target, trigger);
+    } else {
+      target.insertAdjacentElement("afterend", trigger);
+    }
   });
 }
 
