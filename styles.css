@@ -219,7 +219,8 @@ button.ghost {
 
 .hero {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 1rem;
   padding: 1.25rem 1.4rem;
   border-inline-start: 6px solid var(--primary);
@@ -229,11 +230,23 @@ button.ghost {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .field-tool-button,
 .accessibility-toggle {
-  min-inline-size: 10.75rem;
+  --field-tool-size: clamp(5.75rem, 9vw, 7rem);
+  display: grid;
+  flex: 0 0 var(--field-tool-size);
+  inline-size: var(--field-tool-size);
+  block-size: var(--field-tool-size);
+  min-inline-size: var(--field-tool-size);
+  min-block-size: var(--field-tool-size);
+  place-items: center;
+  padding: 0.6rem;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
 }
 
 .view {
@@ -1096,7 +1109,7 @@ body.accessibility-underlined-links a {
 
   .field-tool-button,
   .accessibility-toggle {
-    min-inline-size: 0;
+    --field-tool-size: clamp(5.75rem, 25vw, 7rem);
   }
 }
 
