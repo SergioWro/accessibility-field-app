@@ -231,6 +231,11 @@ button.ghost {
   align-items: center;
 }
 
+.field-tool-button,
+.accessibility-toggle {
+  min-inline-size: 10.75rem;
+}
+
 .view {
   display: none;
   margin-top: 1.25rem;
@@ -877,7 +882,15 @@ dialog::backdrop {
 }
 
 .accessibility-toggle {
+  background: #1557a0;
+  border-color: #1557a0;
+  color: #fff;
   white-space: nowrap;
+}
+
+.accessibility-toggle:hover {
+  background: #0d3f78;
+  border-color: #0d3f78;
 }
 
 .accessibility-panel {
@@ -1057,6 +1070,11 @@ body.accessibility-underlined-links a {
 
   .hero-actions button {
     flex: 1 1 140px;
+  }
+
+  .field-tool-button,
+  .accessibility-toggle {
+    min-inline-size: 0;
   }
 }
 
