@@ -906,15 +906,19 @@ dialog::backdrop {
 }
 
 .accessibility-toggle {
-  background: #1557a0;
-  border-color: #1557a0;
-  color: #fff;
-  white-space: nowrap;
+  background: #fff;
+  border-color: var(--line);
+  color: var(--primary);
 }
 
 .accessibility-toggle:hover {
-  background: #0d3f78;
-  border-color: #0d3f78;
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.accessibility-icon {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  line-height: 1;
 }
 
 .accessibility-panel {

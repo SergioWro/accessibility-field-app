@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.24.0";
+const APP_VERSION = "1.25.0";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
