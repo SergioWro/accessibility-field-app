@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>בדיקה תקופתית של נגישות השירות</title>
+    <style>
+      :root { --ink:#17211f; --primary:#075c53; --line:#c9d9d5; --soft:#edf7f4; --warn:#fff5e9; }
+      * { box-sizing:border-box; } body { margin:0; background:#f4f7f6; color:var(--ink); font:16px/1.55 Arial, sans-serif; }
+      main { max-width:1000px; margin:auto; padding:28px 18px 50px; } header, section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:18px; }
+      header { border-right:6px solid var(--primary); } h1,h2 { margin:0 0 10px; } h1 { color:var(--primary); } h2 { font-size:1.2rem; } .note { background:var(--warn); padding:14px; border-radius:10px; }
+      .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } label { display:grid; gap:5px; font-weight:700; } input,textarea,select { width:100%; padding:9px; border:1px solid #9fb6b1; border-radius:8px; font:inherit; background:#fff; }
+      table { width:100%; border-collapse:collapse; } th,td { border-bottom:1px solid var(--line); padding:12px 8px; text-align:right; vertical-align:top; } th { background:var(--soft); } .actions { display:flex; gap:10px; flex-wrap:wrap; } button,a.button { background:var(--primary); color:#fff; border:0; border-radius:8px; padding:10px 15px; font:inherit; font-weight:700; text-decoration:none; cursor:pointer; } .secondary { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+      small { color:#52635f; } @media (max-width:650px) { .grid { grid-template-columns:1fr; } th:nth-child(3),td:nth-child(3) { display:none; } }
+      @media print { body{background:#fff} main{max-width:none;padding:0} header,section{box-shadow:none;break-inside:avoid} .actions{display:none} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>בדיקה תקופתית של נגישות השירות</h1>
+        <p>תבנית עבודה לממונה ולרכז נגישות, על בסיס טופס 9 המצורף: <a href="./source-documents/form-9-services-periodic-reassessment-2024.docx">פתיחת מסמך המקור</a>.</p>
+        <div class="note"><strong>חשוב:</strong> תבנית זו מסכמת נקודות בדיקה ואינה מחליפה את נוסח התקנות, את הטופס המלא או אישור מורשה נגישות שירות כאשר נדרש.</div>
+      </header>
+      <section>
+        <h2>פרטי הבדיקה</h2>
+        <div class="grid">
+          <label>שם החייב / תאגיד<input /></label><label>ח.פ. / מזהה<input /></label>
+          <label>תחום השירות<input /></label><label>שם המנהל<input /></label>
+          <label>כתובת המקום<input /></label><label>יישוב<input /></label>
+          <label>מבצע הבדיקה<input /></label><label>תאריך הבדיקה<input type="date" /></label>
+          <label>תפקיד / מספר תעודה<input /></label><label>מועד בדיקה תקופתית הבא<input type="date" /></label>
+        </div>
+      </section>
+      <section>
+        <h2>רשימת בדיקה ממוקדת</h2>
+        <table>
+          <thead><tr><th>נושא</th><th>מה לבדוק</th><th>הפניה תמציתית</th><th>תוצאה</th><th>הערה / פעולה לרכז</th></tr></thead>
+          <tbody>
+            <tr><td>מעבר ומכשולים</td><td>מעבר פנוי של 90 ס"מ לפחות; חפצים ומכשולים מסומנים או מוגנים כנדרש.</td><td>תקנה 15</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input placeholder="מה נדרש לתיקון" /></td></tr>
+            <tr><td>שילוט והכוונה</td><td>כניסה נגישה, חניה, שירותים, מעלית ועמדות שירות מסומנים; ניגוד חזותי וגודל אותיות לפי תחולה.</td><td>תקנה 16</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>עמדות ושולחנות שירות</td><td>עמדת ישיבה נגישה: גובה 73-80 ס"מ ורוחב 90 ס"מ; בעמידה יש לבדוק גובה ותנאי נגישות לפי תחולה.</td><td>תקנות 18-19</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>המתנה ותאי מדידה</td><td>מושבים מותאמים, מקום המתנה לכיסא גלגלים ותא מדידה נגיש כאשר קיימים, לפי תחולה.</td><td>תקנות 23-24</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>מידע ושירות</td><td>מסירת מידע בדרכים מותאמות, אמצעי עזר לשמיעה/ראייה ונהלים המאפשרים קבלת שירות שוויונית.</td><td>תקנות השירות</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>הדרכה ורכז</td><td>הדרכת עובדים, תיעוד ההדרכה, מינוי רכז נגישות ופרסום דרכי הפנייה אליו, לפי תחולה.</td><td>תקנות 87-91</td><td><select><option>טרם נבדק</option><option>תקין</option><option>לא תקין</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section>
+        <h2>סיכום הממונה</h2>
+        <label>הנחיות לרכז הנגישות<textarea rows="6" placeholder="ליקויים, סדר עדיפויות, אחראים, מועדים ואימות נדרש"></textarea></label>
+        <p class="actions"><button type="button" onclick="window.print()">הדפס / שמור PDF</button><a class="button secondary" href="../index.html#supervisor-reports">חזרה לדוחות ממונה</a></p>
+      </section>
+    </main>
+  </body>
+</html>

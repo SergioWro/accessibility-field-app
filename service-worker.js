@@ -1,4 +1,4 @@
-const CACHE_NAME = "accessibility-field-app-v47";
+const CACHE_NAME = "accessibility-field-app-v50";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,6 +8,8 @@ const APP_SHELL = [
   "./icons/icon.svg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./reference-material/form-9-services-reassessment-2024.html",
+  "./reference-material/public-building-survey-template.html",
 ];
 
 self.addEventListener("install", (event) => {

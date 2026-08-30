@@ -167,6 +167,25 @@ button.ghost {
   box-shadow: inset -3px 0 0 var(--primary);
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button-link.ghost-link {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--primary);
+}
+
 .sync-card,
 .panel,
 .hero {

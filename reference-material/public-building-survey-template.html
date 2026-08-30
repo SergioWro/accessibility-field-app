@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>סקר נגישות בבניין ציבורי קיים</title>
+    <style>
+      :root { --ink:#17211f; --primary:#075c53; --line:#c9d9d5; --soft:#edf7f4; --warn:#fff5e9; }
+      * { box-sizing:border-box; } body { margin:0; background:#f4f7f6; color:var(--ink); font:16px/1.55 Arial, sans-serif; }
+      main { max-width:1000px; margin:auto; padding:28px 18px 50px; } header, section { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:18px; }
+      header { border-right:6px solid var(--primary); } h1,h2 { margin:0 0 10px; } h1 { color:var(--primary); } h2 { font-size:1.2rem; } .note { background:var(--warn); padding:14px; border-radius:10px; }
+      .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } label { display:grid; gap:5px; font-weight:700; } input,textarea,select { width:100%; padding:9px; border:1px solid #9fb6b1; border-radius:8px; font:inherit; background:#fff; }
+      table { width:100%; border-collapse:collapse; } th,td { border-bottom:1px solid var(--line); padding:12px 8px; text-align:right; vertical-align:top; } th { background:var(--soft); } .actions { display:flex; gap:10px; flex-wrap:wrap; } button,a.button { background:var(--primary); color:#fff; border:0; border-radius:8px; padding:10px 15px; font:inherit; font-weight:700; text-decoration:none; cursor:pointer; } .secondary { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+      @media (max-width:650px) { .grid { grid-template-columns:1fr; } th:nth-child(3),td:nth-child(3) { display:none; } } @media print { body{background:#fff} main{max-width:none;padding:0} header,section{box-shadow:none;break-inside:avoid} .actions{display:none} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>סקר נגישות בבניין ציבורי קיים</h1>
+        <p>תבנית עבודה לממונה ולרכז נגישות, על בסיס דוגמת הסקר המצורפת: <a href="./source-documents/public-building-accessibility-survey-example.pdf">פתיחת מסמך המקור</a>.</p>
+        <div class="note"><strong>חשוב:</strong> זהו כלי עזר תמציתי. יש לאמת את שנת ההיתר, תחולת הדרישות, הפטורים והמהדורה העדכנית מול דין וגורם מוסמך.</div>
+      </header>
+      <section>
+        <h2>פרטי הבניין והסקר</h2>
+        <div class="grid">
+          <label>שם העסק / הבניין<input /></label><label>כתובת<input /></label>
+          <label>בעלים / חייב בנגישות<input /></label><label>איש קשר<input /></label>
+          <label>בניין קיים או חדש<select><option>טרם צוין</option><option>בניין ציבורי קיים</option><option>בניין ציבורי חדש</option></select></label><label>שנת היתר / הקמה<input /></label>
+          <label>מבצע הסקר<input /></label><label>תאריך<input type="date" /></label>
+        </div>
+      </section>
+      <section>
+        <h2>ממצאים לבדיקת הממונה</h2>
+        <table>
+          <thead><tr><th>רכיב</th><th>מה לבדוק</th><th>דוגמת ערך / הפניה</th><th>תוצאה</th><th>הנחיה לרכז</th></tr></thead>
+          <tbody>
+            <tr><td>כניסה ושילוט</td><td>הכוונה לכניסה נגישה, סימון שירותים, מעלית ועמדות שירות.</td><td>שילוט וניגוד חזותי לפי תחולה</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input placeholder="פעולה, אחראי ומועד" /></td></tr>
+            <tr><td>דרך נגישה ורמפה</td><td>רוחב, שיפוע, משטחי מנוחה, מעקות והגנת קצה; יש לתעד מדידה בפועל.</td><td>ת"י 1918 לפי תחולה</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>דלתות ומעברים</td><td>מעבר פנוי, פתיחה, ארגון מול דלתות והיעדר מכשולים.</td><td>דוגמת סף: 80 ס"מ נטו, בכפוף לתחולה</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>תא שירותים נגיש</td><td>קיום, דרך הגעה, מעבר חופשי, מידות, אסלה, כיור, מאחזים וניגוד חזותי.</td><td>תקנות ות"י 1918 לפי תחולה</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>מעלית</td><td>פתח, פיקוד, כריזה, שילוט מישושי, מאחזים ולחצן אזעקה.</td><td>ת"י 2481 ות"י 1918 לפי תחולה</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+            <tr><td>חניה וחזית</td><td>מספר חניות נגישות, תמרור, סימון, הנמכת מדרכה ורצף הגעה.</td><td>לפי מספר מקומות ותחולת הדין</td><td><select><option>טרם נבדק</option><option>תקין</option><option>ליקוי</option><option>לא רלוונטי</option></select></td><td><input /></td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section>
+        <h2>סיכום וחוות דעת עבודה</h2>
+        <label>ממצאים, מגבלות והנחיות לתיקון<textarea rows="6" placeholder="מה נבדק, מה לא נבדק, ליקויים, סדר עדיפות ואימות נדרש"></textarea></label>
+        <p class="actions"><button type="button" onclick="window.print()">הדפס / שמור PDF</button><a class="button secondary" href="../index.html#supervisor-reports">חזרה לדוחות ממונה</a></p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.16.2";
+const APP_VERSION = "1.18.1";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -164,6 +164,32 @@ const catalog = {
         sourceRefs: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013"],
       },
     ],
+    local_authority: [
+      {
+        id: "CHK-LA1",
+        title: "פרסום הסדרי נגישות ודרכי פנייה",
+        threshold: "הסדרי נגישות ודרכי פנייה לרכז או לממונה מפורסמים, ברורים וזמינים בערוצי השירות הרלוונטיים",
+        sourceRefs: ["תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע״ג-2013"],
+      },
+      {
+        id: "CHK-LA2",
+        title: "קבלת שירות במגוון ערוצים",
+        threshold: "ניתן לקבל את השירות והמידע באופן נגיש גם בערוצי השירות שהרשות מפעילה, בהתאם לתחולה ולסוג השירות",
+        sourceRefs: ["חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998", "תקנות נגישות השירות, תשע״ג-2013"],
+      },
+      {
+        id: "CHK-LA3",
+        title: "מידע דיגיטלי לציבור",
+        threshold: "מידע, מסמכים ושירותים דיגיטליים לציבור נבדקו לפי מסלול נגישות האינטרנט והדיגיטל החל",
+        sourceRefs: ["תקנות נגישות השירות, תקנות 35–35ו", "ת״י 5568 לפי תחולה"],
+      },
+      {
+        id: "CHK-LA4",
+        title: "מיפוי, תיעדוף ומעקב תיקון",
+        threshold: "לכל ממצא מתועדים אתר או נכס, אחראי, עדיפות, מועד, עלות משוערת ואימות חוזר לפני סגירה",
+        sourceRefs: ["חוק שוויון זכויות לאנשים עם מוגבלות, תשנ״ח-1998", "הנחיית עבודה מקומית לממונה"],
+      },
+    ],
     event: [
       {
         id: "CHK-E1",
@@ -205,7 +231,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.33",
+    title: "SRD נגיצ'ק v3.36",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -263,6 +289,12 @@ const informationSources = [
     type: "מדריך ממשלתי",
     use: "מידע עדכני על חובות נגישות לשירותי אינטרנט.",
     url: "https://www.gov.il/he/pages/website_accessibility",
+  },
+  {
+    title: "נציבות שוויון זכויות: רכזי נגישות",
+    type: "הנחיה רשמית",
+    use: "הגדרת תפקיד רכז נגישות, מינוי רכז ופרטי קשר נגישים לציבור ולעובדים.",
+    url: "https://www.gov.il/he/pages/accessibility_coordinators_explained",
   },
 ];
 
@@ -355,6 +387,20 @@ informationSources.push(
     use: "צ'קליסט נגישות חושית במרחב הציבורי: רצף, מכשולים, ניגודיות, הכוונה ושינויי גובה.",
     verification: "יש להצליב מול ת״י 1918, הוראות רשות הדרך והתחולה הספציפית.",
     url: "https://www.gov.il/he/pages/accessible_routes_existing_buildings?chapterindex=5docx",
+  },
+  {
+    title: "טופס 9: בדיקה תקופתית של נגישות השירות (2024)",
+    category: "כלי עזר מקומי",
+    use: "תבנית לממונה ולרכז לבדיקת נגישות השירות, מידע, נהלים, הדרכת עובדים ורכז נגישות.",
+    verification: "מסמך עזר מצורף. יש לאמת תחולה ונוסח תקנות עדכני לפני שימוש מקצועי.",
+    url: "./reference-material/form-9-services-reassessment-2024.html",
+  },
+  {
+    title: "דוגמה לסקר נגישות בבניין ציבורי קיים",
+    category: "כלי עזר מקומי",
+    use: "תבנית לממונה לבדיקת כניסה, דרך נגישה, שירותים, רמפות, חניה, מעלית, שילוט ועמדות שירות.",
+    verification: "מסמך עזר מצורף. יש לאמת היתר, תחולה, פטורים ומהדורה לפני קביעת ממצא.",
+    url: "./reference-material/public-building-survey-template.html",
   },
 );
 
@@ -679,6 +725,7 @@ const els = {
     issues: document.getElementById("issues-view"),
     settings: document.getElementById("settings-view"),
     management: document.getElementById("management-view"),
+    "supervisor-reports": document.getElementById("supervisor-reports-view"),
     sources: document.getElementById("sources-view"),
   },
   systemStatus: document.getElementById("system-status"),
@@ -710,6 +757,12 @@ const els = {
   openComparison: document.getElementById("open-comparison"),
   trainingRecordForm: document.getElementById("training-record-form"),
   trainingRecords: document.getElementById("training-records"),
+  toggleCoordinatorRole: document.getElementById("toggle-coordinator-role"),
+  coordinatorRoleDescription: document.getElementById("coordinator-role-description"),
+  openSupervisorReport: document.getElementById("open-supervisor-report"),
+  renderMunicipalReport: document.getElementById("render-municipal-report"),
+  printMunicipalReport: document.getElementById("print-municipal-report"),
+  municipalReport: document.getElementById("municipal-report"),
   settingsForm: document.getElementById("settings-form"),
   settingsSummary: document.getElementById("settings-summary"),
   sourcesTableBody: document.getElementById("sources-table-body"),
@@ -915,6 +968,15 @@ function bindEvents() {
   });
   els.inspectionClosureForm.addEventListener("submit", completeInspection);
   els.trainingRecordForm.addEventListener("submit", saveTrainingRecord);
+  els.toggleCoordinatorRole.addEventListener("click", () => {
+    const isExpanded = els.toggleCoordinatorRole.getAttribute("aria-expanded") === "true";
+    els.toggleCoordinatorRole.setAttribute("aria-expanded", String(!isExpanded));
+    els.toggleCoordinatorRole.textContent = isExpanded ? "הצג הגדרת תפקיד" : "הסתר הגדרת תפקיד";
+    els.coordinatorRoleDescription.classList.toggle("hidden", isExpanded);
+  });
+  els.openSupervisorReport.addEventListener("click", openSupervisorReport);
+  els.renderMunicipalReport.addEventListener("click", renderMunicipalReport);
+  els.printMunicipalReport.addEventListener("click", printMunicipalReport);
   els.prepareReport.addEventListener("click", () => {
     reportInspectionId = state.activeInspectionId;
     renderCorrectionReport();
@@ -1213,6 +1275,10 @@ async function handleCreateInspection(event) {
     documentType: value("documentType"),
     documentReference: value("documentReference"),
     scopeLimitations: value("scopeLimitations"),
+    municipalOwnership: value("municipalOwnership") || (siteType === "local_authority" ? "yes" : ""),
+    municipalAssetType: value("municipalAssetType"),
+    municipalAssetId: value("municipalAssetId"),
+    municipalDepartment: value("municipalDepartment"),
     documents: [],
     createdAt: new Date().toISOString(),
     status: "draft",
@@ -1264,6 +1330,7 @@ function render() {
   renderCorrectionReport();
   renderIssues();
   renderSettings();
+  renderMunicipalReport();
   renderInformationSources();
   initializeContextHelp();
 }
@@ -1342,6 +1409,98 @@ function navigateToView(viewName) {
   window.location.hash = viewName;
   switchView(viewName);
   document.getElementById("main-content").focus();
+}
+
+function openSupervisorReport() {
+  const inspection = getActiveInspection();
+  if (!inspection) {
+    renderSystemStatus("יש לפתוח ביקורת ולתעד ממצאים לפני הפקת דוח הנחיות לרכז.");
+    navigateToView("inspection");
+    return;
+  }
+  reportInspectionId = inspection.id;
+  renderCorrectionReport();
+  navigateToView("inspection");
+  window.requestAnimationFrame(() => {
+    els.correctionReport.scrollIntoView({ behavior: "smooth", block: "start" });
+    els.correctionReport.querySelector("button")?.focus();
+  });
+}
+
+function municipalInspectionRecords() {
+  return state.inspections.filter((inspection) => inspection.municipalOwnership === "yes" || inspection.siteType === "local_authority");
+}
+
+function municipalAssetTypeLabel(type) {
+  return {
+    public_building: "בניין ציבורי",
+    school: "בית ספר / גן",
+    community: "מתנ״ס / ספרייה / תרבות",
+    public_space: "מרחב ציבורי / רחוב / פארק",
+    service: "שירות קבלת קהל / מוקד",
+    digital: "אתר / שירות דיגיטלי",
+    other: "אחר",
+  }[type] || "לא צוין";
+}
+
+function municipalReportRows() {
+  return municipalInspectionRecords()
+    .map((inspection) => {
+      const issues = state.issues.filter((issue) => issue.inspectionId === inspection.id);
+      const openIssues = issues.filter((issue) => issue.lifecycle !== "closed");
+      const severity = ["blocking", "high", "medium", "low"]
+        .map((key) => `${({ blocking: "מונע גישה", high: "חמור", medium: "בינוני", low: "קל" })[key]}: ${openIssues.filter((issue) => issue.severity === key).length}`)
+        .join(" | ");
+      const responsible = [...new Set(openIssues.map((issue) => issue.liableParty).filter(Boolean))].join(", ") || "טרם הוגדר";
+      const costs = [...new Set(openIssues.map((issue) => issue.estimatedCost).filter(Boolean))].join("; ") || "לא הוזנה";
+      return { inspection, issues, openIssues, severity, responsible, costs };
+    })
+    .sort((a, b) => new Date(b.inspection.createdAt) - new Date(a.inspection.createdAt));
+}
+
+function renderMunicipalReport() {
+  const rows = municipalReportRows();
+  if (!rows.length) {
+    els.municipalReport.innerHTML = `<div class="list-row">עדיין אין ביקורות המסומנות כשייכות לרשות מקומית. בשלב פתיחת הביקורת, פתח „פרטים מתקדמים ומסמכים” וסמן „שיוך לרשות מקומית”.</div>`;
+    return;
+  }
+  const totalOpen = rows.reduce((sum, row) => sum + row.openIssues.length, 0);
+  const totalClosed = rows.reduce((sum, row) => sum + row.issues.filter((issue) => issue.lifecycle === "closed").length, 0);
+  els.municipalReport.innerHTML = `
+    <div class="report-status-card ${totalOpen ? "is-open" : "is-resolved"}">
+      <strong>סיכום רשותי מקומי</strong>
+      <p>אתרים או שירותים שסוקרו: ${rows.length} | ליקויים פתוחים: ${totalOpen} | ליקויים סגורים: ${totalClosed}</p>
+    </div>
+    ${rows.map((row) => `
+      <article class="issue-card report-issue ${row.openIssues.length ? "is-open" : "is-resolved"}">
+        <strong>${escapeHtml(row.inspection.siteName)}</strong>
+        <p class="muted small">${escapeHtml(municipalAssetTypeLabel(row.inspection.municipalAssetType))} | מזהה נכס: ${escapeHtml(row.inspection.municipalAssetId || "לא צוין")} | אגף: ${escapeHtml(row.inspection.municipalDepartment || "לא צוין")}</p>
+        <p>ביקורת: ${escapeHtml(formatDate(row.inspection.createdAt))} | ליקויים פתוחים: ${row.openIssues.length}</p>
+        <p>חומרה: ${escapeHtml(row.severity)}</p>
+        <p>אחראי: ${escapeHtml(row.responsible)} | עלות משוערת: ${escapeHtml(row.costs)}</p>
+      </article>
+    `).join("")}
+  `;
+}
+
+function printMunicipalReport() {
+  const rows = municipalReportRows();
+  if (!rows.length) {
+    renderSystemStatus("אין ביקורות רשותיות להדפסה. סמן שיוך רשותי בעת פתיחת הביקורת.");
+    return;
+  }
+  const totalOpen = rows.reduce((sum, row) => sum + row.openIssues.length, 0);
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    renderSystemStatus("הדפדפן חסם את חלון ההדפסה. אפשר חלונות קופצים ונסה שוב.");
+    return;
+  }
+  printWindow.opener = null;
+  const entries = rows.map((row) => `<article class="${row.openIssues.length ? "open" : "resolved"}"><h2>${escapeHtml(row.inspection.siteName)}</h2><p><strong>סוג נכס/שירות:</strong> ${escapeHtml(municipalAssetTypeLabel(row.inspection.municipalAssetType))}</p><p><strong>מזהה נכס ואגף:</strong> ${escapeHtml(row.inspection.municipalAssetId || "לא צוין")} | ${escapeHtml(row.inspection.municipalDepartment || "לא צוין")}</p><p><strong>ליקויים פתוחים:</strong> ${row.openIssues.length}</p><p><strong>חומרה:</strong> ${escapeHtml(row.severity)}</p><p><strong>אחראי ועלות משוערת:</strong> ${escapeHtml(row.responsible)} | ${escapeHtml(row.costs)}</p></article>`).join("");
+  printWindow.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>דוח רשות מקומית מרוכז</title><style>body{font-family:Arial,sans-serif;color:#17211f;margin:32px;line-height:1.55}h1{color:#0e5f5c}h2{font-size:18px;margin-bottom:8px}article{border:1px solid #b8d7d2;border-right:5px solid #0e5f5c;border-radius:10px;padding:14px;margin:14px 0}article.open{border-color:#e1aaa4;border-right-color:#a6362b;background:#fff3f1}article.resolved{background:#edf8f4}.summary{padding:12px;background:#edf8f4;border-radius:10px}@media print{body{margin:16mm}}</style></head><body><h1>דוח רשות מקומית מרוכז</h1><p class="summary"><strong>הופק:</strong> ${escapeHtml(formatDate(new Date().toISOString()))} | <strong>אתרים או שירותים:</strong> ${rows.length} | <strong>ליקויים פתוחים:</strong> ${totalOpen}</p>${entries}<p>הדוח מבוסס על ביקורות מקומיות שסומנו בשיוך רשותי. הוא כלי ניהולי ואינו מחליף אימות תחולה, תקצוב, תכנון סטטוטורי או חוות דעת מוסמכת.</p></body></html>`);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => printWindow.print(), 250);
 }
 
 function openIssuesWithFilters({ severity = "all", status = "all" } = {}) {

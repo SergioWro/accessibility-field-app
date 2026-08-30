@@ -25,6 +25,7 @@
           <a class="nav-link is-active" data-view="dashboard" href="#dashboard">לוח בקרה</a>
           <a class="nav-link" data-view="issues" href="#issues">ליקויים</a>
           <a class="nav-link" data-view="management" href="#management">ניהול ארגוני</a>
+          <a class="nav-link" data-view="supervisor-reports" href="#supervisor-reports">דוחות ממונה</a>
           <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
           <a class="nav-link" data-view="sources" href="#sources">מקורות מידע</a>
         </nav>
@@ -147,6 +148,14 @@
                       <fieldset class="full compact-fieldset"><legend>מסמכים קיימים</legend><label><input type="checkbox" name="recordFlags" value="published_arrangements" /> הסדרי נגישות מפורסמים</label><label><input type="checkbox" name="recordFlags" value="accessibility_file" /> תיק נגישות</label><label><input type="checkbox" name="recordFlags" value="previous_report" /> דוח קודם</label><label><input type="checkbox" name="recordFlags" value="commission_order" /> צו נציבות</label></fieldset>
                     </section>
                     <label class="full"><span>פטור / דחייה / התאמה חלופית / נטל כבד</span><textarea name="exemptionDetails" rows="2" placeholder="סוג, תוקף, אסמכתה ומיקום המסמך"></textarea></label>
+                    <section class="full inspection-subsection">
+                      <h4>שיוך רשותי (אופציונלי)</h4>
+                      <p class="full muted small">סמן רק כאשר הביקורת שייכת לנכס או לשירות של רשות מקומית. השיוך יאפשר הכללה בדוח רשותי מרוכז במכשיר זה.</p>
+                      <label><span>שיוך לרשות מקומית</span><select name="municipalOwnership"><option value="">לא צוין</option><option value="yes">כן, נכס או שירות רשותי</option></select></label>
+                      <label><span>סוג נכס / שירות רשותי</span><select name="municipalAssetType"><option value="">לא צוין</option><option value="public_building">בניין ציבורי</option><option value="school">בית ספר / גן</option><option value="community">מתנ״ס / ספרייה / תרבות</option><option value="public_space">מרחב ציבורי / רחוב / פארק</option><option value="service">שירות קבלת קהל / מוקד</option><option value="digital">אתר / שירות דיגיטלי</option><option value="other">אחר</option></select></label>
+                      <label><span>מזהה נכס / אתר</span><input type="text" name="municipalAssetId" placeholder="מספר נכס, קוד אתר או מזהה פנימי" /></label>
+                      <label><span>אגף / יחידה אחראית</span><input type="text" name="municipalDepartment" placeholder="למשל: הנדסה, חינוך, שפ״ע או שירות לתושב" /></label>
+                    </section>
                     <label data-help="מסווג את המסמך המצורף כדי שיהיה אפשר להבין אם הוא היתר, פטור, התאמה חלופית או דוח קודם. יש לציין גם אסמכתה ותוקף כאשר קיימים."><span>סוג מסמך מצורף</span><select name="documentType"><option value="permit">היתר / רישוי</option><option value="exemption">פטור / דחייה</option><option value="alternative">התאמה חלופית</option><option value="previous_report">דוח קודם</option><option value="other">אחר</option></select></label>
                     <label><span>מספר מסמך ותוקף</span><input type="text" name="documentReference" placeholder="מספר, תאריך ותוקף" /></label>
                     <label class="full"><span>צירוף מסמכים מקומיים</span><input class="inspection-documents" type="file" multiple accept="image/*,application/pdf,.doc,.docx" /><small class="muted">המסמכים נשמרים במכשיר זה בלבד ונכללים בגיבוי JSON.</small></label>
@@ -341,6 +350,32 @@
               <p class="muted">תיעוד מקומי של פעולות ארגוניות, מופרד מביצוע הביקורת בשטח.</p>
             </div>
           </div>
+          <section class="panel" aria-labelledby="coordinator-role-title">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Accessibility coordinator</p>
+                <h4 id="coordinator-role-title">תפקיד רכז נגישות</h4>
+                <p class="muted small">הגדרת תפקיד ותנאי מינוי בקצרה, לעיון לפני תיעוד הפעולות הארגוניות.</p>
+              </div>
+              <button id="toggle-coordinator-role" type="button" class="ghost" aria-expanded="false" aria-controls="coordinator-role-description">הצג הגדרת תפקיד</button>
+            </div>
+            <div id="coordinator-role-description" class="hidden" aria-live="polite">
+              <div class="note-box">
+                <h5>מטרת התפקיד</h5>
+                <p>רכז הנגישות מוביל, מטמיע ומפקח על היבטי הנגישות בארגון, ומשמש כתובת מקצועית לעובדים ולציבור.</p>
+                <ul>
+                  <li>מסירת מידע נגיש לציבור על הסדרי נגישות, אמצעי עזר והתאמות חלופיות.</li>
+                  <li>קידום יישום חובות הנגישות במבנים, תשתיות, שירות ומידע דיגיטלי.</li>
+                  <li>ייעוץ והדרכה לגורמים בארגון לגבי התאמות לעובדים, לקוחות ומבקרים עם מוגבלות.</li>
+                  <li>ריכוז וטיפול בפניות ובתלונות נגישות והכוונתן לגורם האחראי.</li>
+                </ul>
+                <h5>על מי חלה חובת מינוי?</h5>
+                <p>לפי הסיכום בתקנות נגישות השירות, מי שאחראי לאספקת שירות ציבורי ומעסיק לפחות 25 עובדים, לרבות באמצעות חברת כוח אדם או קבלן, נדרש למנות רכז נגישות מקרב עובדיו. רצוי שהרכז יהיה בעל ידע בנגישות ובעל יכולת להניע יישום בארגון.</p>
+                <p class="muted small">גם כאשר תנאי המינוי אינו מתקיים, חובות הנגישות החלות על השירות או המקום אינן מתבטלות. יש לאמת תחולה, נוסח עדכני וחריגים מול המקור הרשמי או גורם מקצועי מוסמך לפני קבלת החלטה.</p>
+                <p class="small"><a href="https://www.gov.il/he/pages/accessibility_coordinators_explained" target="_blank" rel="noreferrer">מידע רשמי: נציבות שוויון זכויות לאנשים עם מוגבלות - רכזי נגישות</a></p>
+              </div>
+            </div>
+          </section>
           <section class="panel" aria-labelledby="training-title">
             <div class="panel-head"><div><p class="eyebrow">Training</p><h4 id="training-title">תיעוד הדרכת נגישות</h4><p class="muted small">הרשומה נשמרת מקומית ומשויכת לביקורת הפעילה, אם נפתחה.</p></div></div>
             <form id="training-record-form" class="form-grid">
@@ -352,6 +387,60 @@
               <div class="full form-actions"><button type="submit" class="ghost">שמור תיעוד הדרכה</button></div>
             </form>
             <div id="training-records" class="stack-list"></div>
+          </section>
+        </section>
+
+        <section id="supervisor-reports-view" class="view" aria-labelledby="supervisor-reports-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Supervisor reports</p>
+              <h3 id="supervisor-reports-title">דוחות ממונה נגישות</h3>
+              <p class="muted">כלים מקומיים לממונה לצורך הנחיית רכז הנגישות, מעקב תיקון ותיעוד כשלים שעלו בסקר.</p>
+            </div>
+          </div>
+          <div class="panel-grid">
+            <section class="panel">
+              <h4>דוח הנחיות לרכז</h4>
+              <p>הדוח מבוסס על הליקויים שתועדו בביקורת הפעילה: עדיפות, פעולה נדרשת, דרישה נורמטיבית, מדידות, אחראי ואימות חוזר.</p>
+              <button id="open-supervisor-report" type="button">פתח דוח הנחיות לביקורת הפעילה</button>
+              <p class="muted small">הדוח אינו מחליף חוות דעת סטטוטורית או אימות תחולה של מורשה נגישות.</p>
+            </section>
+            <section class="panel">
+              <h4>מסגרת עבודה לממונה</h4>
+              <ul class="plain-list">
+                <li>תעד את מקור הבדיקה, תחולת הדין והמידע החסר לפני קביעה מקצועית.</li>
+                <li>הנחה את הרכז לפי ממצא מתועד, יעד מדידה, פעולה, אחראי ומועד.</li>
+                <li>סגור ליקוי רק לאחר ביקורת חוזרת, מדידה ואימות בשטח.</li>
+                <li>בדיקה תקופתית של נגישות השירות נדרשת לפחות אחת לחמש שנים ממועד השלמת ההתאמות, בכפוף לתחולה.</li>
+              </ul>
+            </section>
+          </div>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Reference templates</p>
+                <h4>תבניות HTML על בסיס המסמכים המצורפים</h4>
+                <p class="muted small">התבניות הן כלי עבודה מקומי ותמציתי. יש לאמת תחולה, נוסח עדכני ומהדורה לפני הסתמכות מקצועית.</p>
+              </div>
+            </div>
+            <div class="toolbar">
+              <a class="button-link" href="./reference-material/form-9-services-reassessment-2024.html" target="_blank" rel="noopener">בדיקה תקופתית של נגישות השירות</a>
+              <a class="button-link ghost-link" href="./reference-material/public-building-survey-template.html" target="_blank" rel="noopener">סקר נגישות בבניין ציבורי קיים</a>
+            </div>
+          </section>
+          <section class="panel" aria-labelledby="municipal-report-title">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Municipal overview</p>
+                <h4 id="municipal-report-title">דוח רשות מקומית מרוכז</h4>
+                <p class="muted small">מציג רק סקרים שסומנו בשיוך רשותי או שנפתחו כ„רשות מקומית / משרד ציבורי”. אין כאן סנכרון בין מכשירים.</p>
+              </div>
+              <div class="toolbar">
+                <button id="render-municipal-report" type="button">הצג דוח רשותי</button>
+                <button id="print-municipal-report" class="ghost" type="button">הדפס / שמור PDF</button>
+              </div>
+            </div>
+            <div id="municipal-report" class="stack-list" aria-live="polite"></div>
           </section>
         </section>
 
