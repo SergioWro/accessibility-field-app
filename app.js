@@ -7,7 +7,7 @@ const STATE_STORE_NAME = "state";
 const STATE_RECORD_ID = "primary";
 const SESSION_API_KEY = "accessibility-field-app-openai-api-key";
 const ACCESSIBILITY_STORAGE_KEY = "accessibility-field-app-preferences-v1";
-const APP_VERSION = "1.18.1";
+const APP_VERSION = "1.19.0";
 const AI_REQUEST_TIMEOUT_MS = 90000;
 
 const catalog = {
@@ -231,7 +231,7 @@ const catalog = {
 
 const informationSources = [
   {
-    title: "SRD נגיצ'ק v3.36",
+    title: "SRD נגיצ'ק v3.37",
     type: "מסמך דרישות",
     use: "מבנה המערכת, קטגוריות הביקורת, שער הסקר, צ׳קליסטים ענפיים, זרימות עבודה וערכי סף הדורשים אימות תחולה.",
     url: "",
@@ -295,6 +295,43 @@ const informationSources = [
     type: "הנחיה רשמית",
     use: "הגדרת תפקיד רכז נגישות, מינוי רכז ופרטי קשר נגישים לציבור ולעובדים.",
     url: "https://www.gov.il/he/pages/accessibility_coordinators_explained",
+  },
+  {
+    title: "נציבות שוויון זכויות: מורשה נגישות השירות",
+    type: "הנחיה רשמית",
+    use: "תפקידים, סמכויות ודוגמאות למקרים שבהם נדרשת היוועצות או חוות דעת של מורשה נגישות השירות.",
+    url: "https://www.gov.il/he/pages/licensed_service_accessibility_professionals?chapterIndex=3",
+  },
+  {
+    title: "משרד העבודה: רישום מורשי נגישות מתו״ס",
+    type: "הנחיה רשמית",
+    use: "תחומי העיסוק והדרישות לרישום מורשה נגישות מבנים, תשתיות וסביבה.",
+    url: "https://www.gov.il/he/service/licensed-registration-of-accessibility-matos-a",
+  },
+  {
+    title: "נציבות שוויון זכויות: נגישות באירועים וכנסים - מבוא",
+    type: "הנחיה רשמית",
+    use: "רקע לעבודה מול מארגני אירועים וכנסים הפתוחים לציבור.",
+    url: "https://www.gov.il/he/pages/conferences_events_access_introduction",
+  },
+  {
+    title: "נציבות שוויון זכויות: מדריך נגישות לכנסים",
+    type: "הנחיה רשמית",
+    use: "בדיקת מקום, מידע, הרשמה, שילוט והתאמות נגישות באירועים וכנסים.",
+    url: "https://www.gov.il/he/pages/conferences_events_access_guide",
+  },
+  {
+    title: "נציבות שוויון זכויות: זכויות נגישות באירועים וכנסים",
+    type: "הנחיה רשמית",
+    use: "הבנת התאמות נגישות למשתתפים באירועים ובכנסים הפתוחים לציבור.",
+    url: "https://www.gov.il/he/pages/conferences_events_access_rights",
+  },
+  {
+    title: "RightHear: ההבדלים בין רכז נגישות, יועץ ומורשה נגישות",
+    type: "מקור משלים",
+    use: "הסבר כללי להבחנה בין תפקיד ארגוני של רכז נגישות לבין הסתייעות ביועץ או מורשה נגישות.",
+    verification: "מקור הסבר משלים, אינו מקור נורמטיבי מחייב; יש להעדיף את המקורות הממשלתיים לקביעה מקצועית.",
+    url: "https://www.right-hear.com/%D7%9E%D7%A6%D7%90-%D7%90%D7%AA-%D7%94%D7%94%D7%91%D7%93%D7%9C%D7%99%D7%9D-%D7%A8%D7%9B%D7%96-%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA-%D7%99%D7%95%D7%A2%D7%A5-%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA/",
   },
 ];
 
@@ -759,6 +796,8 @@ const els = {
   trainingRecords: document.getElementById("training-records"),
   toggleCoordinatorRole: document.getElementById("toggle-coordinator-role"),
   coordinatorRoleDescription: document.getElementById("coordinator-role-description"),
+  toggleLicensedRole: document.getElementById("toggle-licensed-role"),
+  licensedRoleDescription: document.getElementById("licensed-role-description"),
   openSupervisorReport: document.getElementById("open-supervisor-report"),
   renderMunicipalReport: document.getElementById("render-municipal-report"),
   printMunicipalReport: document.getElementById("print-municipal-report"),
@@ -973,6 +1012,12 @@ function bindEvents() {
     els.toggleCoordinatorRole.setAttribute("aria-expanded", String(!isExpanded));
     els.toggleCoordinatorRole.textContent = isExpanded ? "הצג הגדרת תפקיד" : "הסתר הגדרת תפקיד";
     els.coordinatorRoleDescription.classList.toggle("hidden", isExpanded);
+  });
+  els.toggleLicensedRole.addEventListener("click", () => {
+    const isExpanded = els.toggleLicensedRole.getAttribute("aria-expanded") === "true";
+    els.toggleLicensedRole.setAttribute("aria-expanded", String(!isExpanded));
+    els.toggleLicensedRole.textContent = isExpanded ? "הצג הגדרת תפקיד" : "הסתר הגדרת תפקיד";
+    els.licensedRoleDescription.classList.toggle("hidden", isExpanded);
   });
   els.openSupervisorReport.addEventListener("click", openSupervisorReport);
   els.renderMunicipalReport.addEventListener("click", renderMunicipalReport);
@@ -1373,7 +1418,7 @@ function renderDashboard() {
   }));
   els.severityBreakdown.innerHTML = severityCounts
     .map(
-      (item) => `<button type="button" class="severity-shortcut" data-severity="${item.key}" aria-label="הצג ליקויים פתוחים בחומרה ${item.label}"><strong>${item.label}</strong><span>${item.count}</span></button>`,
+      (item) => `<button type="button" class="severity-shortcut" data-severity="${item.key}" aria-label="הצג ליקויים פתוחים בחומרה ${item.label}" data-help="פותח את מסך הליקויים עם סינון לחומרה זו בלבד. הפעולה אינה משנה את הליקויים."><strong>${item.label}</strong><span>${item.count}</span></button>`,
     )
     .join("");
 
@@ -2507,9 +2552,9 @@ function renderIssues() {
                 <strong>תיקון:</strong> ${escapeHtml(issue.liableParty || inspection?.liableParty || "אחראי טרם הוגדר")} | ${escapeHtml(issue.remediationType || "לא סווג")} | ${escapeHtml(issue.estimatedCost || "עלות לא הוזנה")} | היתר: ${escapeHtml(issue.permitNeeded || "לא ידוע")}
               </div>
               <div class="issue-quick-actions">
-                <button type="button" class="quick-camera" data-issue-id="${issue.id}">פתח מצלמה והוסף ראיה</button>
+                <button type="button" class="quick-camera" data-issue-id="${issue.id}" data-help="פותח את מצלמת המכשיר לצירוף ראיה מהירה לליקוי זה. הראיה נשמרת מקומית.">פתח מצלמה והוסף ראיה</button>
                 <input class="quick-camera-file hidden" data-issue-id="${issue.id}" type="file" accept="image/*,video/*" capture="environment" />
-                <button type="button" class="copy-issue-id ghost" data-issue-id="${issue.id}">העתק מזהה ליקוי</button>
+                <button type="button" class="copy-issue-id ghost" data-issue-id="${issue.id}" data-help="מעתיק ללוח את המזהה המקומי של הליקוי לצורך שיתוף או מעקב.">העתק מזהה ליקוי</button>
               </div>
               <details class="reinspection-panel" ${issue.verificationCompleted ? "open" : ""}>
                 <summary>ביקורת חוזרת וסגירה מאומתת</summary>
@@ -2522,7 +2567,7 @@ function renderIssues() {
                   <div class="full"><button type="button" class="verify-close" data-issue-id="${issue.id}" data-help="סגירת ליקוי מתאפשרת רק לאחר תאריך אימות, שם מאמת, מדידה חוזרת וכלי מדידה. אפשר לצרף גם ראיית אחרי מקומית.">${issue.verificationCompleted ? "אימות הושלם" : "אשר אימות וסגור ליקוי"}</button></div>
                 </div>
               </details>
-              <label class="full">
+              <label class="full" data-help="עדכון הסטטוס משקף את שלב הטיפול. אי אפשר לבחור סגור לפני אימות חוזר עם תאריך, מאמת ומדידה.">
                 <span>עדכן סטטוס</span>
                 <select data-issue-id="${issue.id}" class="lifecycle-select">
                   ${["open", "assigned", "in_progress", "pending_verification", "closed"]

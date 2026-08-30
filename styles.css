@@ -213,6 +213,7 @@ button.ghost {
 }
 
 .main-content {
+  min-width: 0;
   padding: 1.25rem;
 }
 
@@ -784,6 +785,7 @@ dialog::backdrop {
 }
 
 .source-table-wrap {
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -963,7 +965,7 @@ body.accessibility-underlined-links a {
 
 @media (max-width: 900px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .hero,

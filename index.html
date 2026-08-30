@@ -21,12 +21,12 @@
           <p class="muted">MVP מקומי, single-user, local-first</p>
         </div>
         <nav class="nav" aria-label="ניווט ראשי">
+          <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
           <a class="nav-link" data-view="inspection" href="#inspection">ביקורת חדשה</a>
           <a class="nav-link is-active" data-view="dashboard" href="#dashboard">לוח בקרה</a>
           <a class="nav-link" data-view="issues" href="#issues">ליקויים</a>
           <a class="nav-link" data-view="management" href="#management">ניהול ארגוני</a>
           <a class="nav-link" data-view="supervisor-reports" href="#supervisor-reports">דוחות ממונה</a>
-          <a class="nav-link" data-view="settings" href="#settings">הגדרות ו-BYOK</a>
           <a class="nav-link" data-view="sources" href="#sources">מקורות מידע</a>
         </nav>
         <footer class="sidebar-footer">
@@ -71,11 +71,11 @@
 
           <div class="panel">
             <form id="inspection-form" class="form-grid">
-              <label>
+              <label data-help="בחירת האשכול קובעת את משפחת הצ׳קליסטים: סביבה בנויה, שירות, דיגיטל או נגישות ייעודית. בחר לפי נושא הסקר בפועל.">
                 <span>אשכול</span>
                 <select name="cluster" required></select>
               </label>
-              <label>
+              <label data-help="בחר את סוג האתר או השירות המדויק ביותר. הבחירה קובעת אילו פריטי בדיקה רלוונטיים יוצגו בהמשך.">
                 <span>סוג אתר/שירות</span>
                 <select name="siteType" required></select>
               </label>
@@ -91,7 +91,7 @@
                 <label><span>כתובת</span><input type="text" name="address" placeholder="רחוב, עיר" required /></label>
                 <label><span>מבצע הסקר</span><input type="text" name="inspector" placeholder="שם מלא" required /></label>
                 <label data-help="הבחירה מתעדת את אופי הסקר. היא אינה משנה את חובות הנגישות ואינה הופכת את הדוח לאישור סטטוטורי."><span>סוג הבדיקה</span><select name="surveyType"><option value="self">בדיקה עצמית של החייב</option><option value="internal">סקר ממונה פנימי</option><option value="external">חוות דעת חיצונית</option><option value="resident_report">דיווח תושב / פנייה מהציבור</option></select></label>
-                <label><span>מיקום GPS</span><div class="field-with-action"><input type="text" name="gps" placeholder="31.778, 35.235" /><button id="capture-gps" class="ghost" type="button">קבל מיקום נוכחי</button></div></label>
+                <label><span>מיקום GPS</span><div class="field-with-action"><input type="text" name="gps" placeholder="31.778, 35.235" /><button id="capture-gps" class="ghost" type="button" data-help="מבקש הרשאת מיקום מהמכשיר וממלא את השדה. המיקום נשמר רק כאשר יוצרים את הביקורת, ואפשר להשאיר את השדה ריק.">קבל מיקום נוכחי</button></div></label>
                 <label class="full"><span>הערות פתיחה</span><textarea name="notes" rows="3" placeholder="הקשר כללי לביקורת"></textarea></label>
 
                 <section class="full inspection-subsection" data-survey-types="resident_report">
@@ -162,7 +162,7 @@
                     <label class="full" data-help="תעד במפורש אזורים, רכיבים או מסמכים שלא נבדקו ולמה. מידע זה יוצג בדוח כדי למנוע מצג של כיסוי מלא."><span>היקף הבדיקה ומגבלות</span><textarea name="scopeLimitations" rows="2" placeholder="מה נבדק ומה לא נבדק, למשל: לא הייתה גישה לגג או לחדר מכונות"></textarea></label>
                   </div>
                 </details>
-                <div class="full form-actions"><button type="submit">צור ביקורת</button></div>
+                <div class="full form-actions"><button type="submit" data-help="יוצר סבב ביקורת מקומי עם הצ׳קליסט שנבחר. לאחר היצירה עוברים למסך הפריטים; הנתונים נשמרים במכשיר זה בלבד.">צור ביקורת</button></div>
               </div>
             </form>
           </div>
@@ -175,8 +175,8 @@
                   <p id="active-inspection-meta" class="muted small"></p>
                 </div>
                 <div class="toolbar">
-                  <button id="prepare-report" class="ghost">הכן דוח תיקונים</button>
-                  <button id="save-draft" class="ghost">שמור טיוטה</button>
+                  <button id="prepare-report" class="ghost" data-help="מכין דוח תיקונים מהליקויים שתועדו בביקורת הפעילה. הדוח הוא כלי עבודה ומחייב אימות תחולה מקצועי.">הכן דוח תיקונים</button>
+                  <button id="save-draft" class="ghost" data-help="שומר את מצב הביקורת המקומי כפי שהוא, בלי לסיים את הסקר או לסגור ליקויים.">שמור טיוטה</button>
                   <button id="complete-inspection" data-help="פותח מסך סיום לתיעוד ההיקף הסופי, מה שלא נבדק ואישור ההפצה. ליקויים פתוחים נשארים לניהול גם לאחר סיום הסקר.">סיום סקר</button>
                 </div>
               </div>
@@ -185,7 +185,7 @@
                   <strong id="checklist-progress">התקדמות בדיקה</strong>
                   <span id="checklist-progress-detail" class="muted small"></span>
                 </div>
-                <button id="toggle-issues-only" class="ghost" type="button">הצג ליקויים בלבד</button>
+              <button id="toggle-issues-only" class="ghost" type="button" data-help="מסנן זמנית את הצ׳קליסט להצגת פריטים שסומנו כליקוי בלבד. הוא אינו משנה את נתוני הביקורת.">הצג ליקויים בלבד</button>
               </div>
               <div id="checklist-container" class="checklist"></div>
             </section>
@@ -195,7 +195,7 @@
                 <label class="full"><span>מה נבדק ומה לא נבדק</span><textarea name="coverageStatement" rows="3" required placeholder="ציין היקף סופי, אזורים שלא נבדקו וסיבת אי-הבדיקה"></textarea></label>
                 <label class="full"><span>סיכום מקצועי להפצה</span><textarea name="distributionNote" rows="3" required placeholder="למשל: הסקר מוכן להפצה פנימית, בכפוף לאימות תחולה מקצועי"></textarea></label>
                 <label class="full checkbox-line"><input name="distributionApproved" type="checkbox" required /> אני מאשר/ת שהיקף הבדיקה, המגבלות והסטטוס המקצועי נבדקו לפני הפצה.</label>
-                <div class="full form-actions"><button type="submit">אשר סיום סקר</button></div>
+                <div class="full form-actions"><button type="submit" data-help="מסיים את הסקר לאחר השלמת היקף, מגבלות ואישור ההפצה. ליקויים פתוחים ממשיכים להיות מנוהלים במסך הליקויים.">אשר סיום סקר</button></div>
               </form>
             </section>
             <section id="correction-report" class="panel hidden" aria-live="polite">
@@ -205,8 +205,8 @@
                   <p id="correction-report-date" class="muted small"></p>
                   <p class="muted small">סדר פעולות מוצע. המקורות דורשים אימות תחולה מקצועי לפני ביצוע.</p>
                 </div>
-                <button id="save-correction-report">שמור דוח תיקונים</button>
-                <button id="print-correction-report" class="ghost">הדפס / שמור PDF</button>
+                <button id="save-correction-report" data-help="שומר עותק מקומי של דוח התיקונים לביקורת הפעילה.">שמור דוח תיקונים</button>
+                <button id="print-correction-report" class="ghost" data-help="פותח תצוגת הדפסה של דוח התיקונים. מהדפדפן אפשר לבחור שמירה כ-PDF.">הדפס / שמור PDF</button>
               </div>
               <div id="correction-report-content" class="stack-list"></div>
             </section>
@@ -228,11 +228,11 @@
                 <option value="pending_verification">ממתין לאימות</option>
                 <option value="closed">סגור</option>
               </select>
-              <button id="export-json" class="ghost">ייצוא JSON</button>
+              <button id="export-json" class="ghost" data-help="יוצר גיבוי מלא של הנתונים המקומיים, כולל תמונות ומסמכים. הקובץ עשוי להיות גדול.">ייצוא JSON</button>
               <button id="export-json-light" class="ghost" data-help="יוצר גיבוי של הנתונים והטקסטים ללא תמונות, סרטונים או מסמכים. מתאים להעברה קלה בין מכשירים.">גיבוי ללא תמונות</button>
               <button id="import-json" class="ghost" data-help="בייבוא תוצג בחירה: מיזוג בטוח שמוסיף רשומות חדשות, או החלפה מלאה של הנתונים המקומיים. צור גיבוי לפני החלפה.">ייבוא גיבוי</button>
               <input id="import-json-file" class="hidden" type="file" accept="application/json,.json" />
-              <button id="export-csv" class="ghost">ייצוא CSV</button>
+              <button id="export-csv" class="ghost" data-help="מייצא טבלת ליקויים לאקסל או לכלי גיליון. קובצי מדיה אינם נכללים ב-CSV.">ייצוא CSV</button>
               <button id="open-comparison" class="ghost hidden" type="button" data-help="הפעולה זמינה רק כאשר יש ביקורת קודמת לאותה כתובת וליקוי שממתין לאימות לאחר תיקון. היא מציגה השוואה ואינה סוגרת ליקוי.">ביקורת חוזרת והשוואה</button>
             </div>
           </div>
@@ -241,11 +241,11 @@
               <span>חיפוש ליקוי</span>
               <input id="issue-search" type="search" placeholder="אתר, כתובת, אלמנט או מזהה" />
             </label>
-            <label>
+            <label data-help="מסנן לפי הגורם שהוגדר כאחראי לתיקון. הסינון אינו משנה אחריות או סטטוס.">
               <span>אחראי לתיקון</span>
               <select id="responsible-filter"><option value="all">כל האחראים</option></select>
             </label>
-            <label>
+            <label data-help="מסנן ליקויים לפי מועד הטיפול. בחירה באיחור מציגה רק ליקויים שמועד היעד שלהם חלף.">
               <span>מועד טיפול</span>
               <select id="due-filter">
                 <option value="all">כל המועדים</option>
@@ -259,7 +259,7 @@
                 <option value="required">נדרש אימות בשטח</option>
               </select>
             </label>
-            <button id="clear-issue-filters" class="ghost" type="button">נקה סינון</button>
+            <button id="clear-issue-filters" class="ghost" type="button" data-help="מחזיר את כל מסנני הליקויים למצבם הראשוני, בלי לשנות נתונים.">נקה סינון</button>
           </div>
           <p id="issue-filter-summary" class="muted small" aria-live="polite"></p>
           <section id="previous-inspection-comparison" class="panel hidden" aria-labelledby="comparison-title">
@@ -276,12 +276,12 @@
               <h2>תיעוד, מעקב וייצוא ליקויי נגישות</h2>
             </div>
             <div class="hero-actions">
-              <button id="install-app" class="ghost hidden">התקן בטלפון</button>
-              <button id="seed-demo">טען נתוני הדגמה</button>
-              <button id="accessibility-toggle" class="accessibility-toggle ghost" type="button" aria-expanded="false" aria-controls="accessibility-panel">
+              <button id="install-app" class="ghost hidden" data-help="כאשר הדפדפן תומך בכך, פותח את פעולת התקנת ה-PWA במכשיר. הנתונים נשארים מקומיים בדפדפן המותקן.">התקן בטלפון</button>
+              <button id="seed-demo" data-help="טוען שלוש ביקורות הדגמה ומחליף את הנתונים המקומיים הקיימים. צור גיבוי לפני הפעלה אם יש נתונים שברצונך לשמור.">טען נתוני הדגמה</button>
+              <button id="accessibility-toggle" class="accessibility-toggle ghost" type="button" aria-expanded="false" aria-controls="accessibility-panel" data-help="פותח התאמות תצוגה מקומיות: גודל טקסט, ניגודיות והדגשת קישורים.">
                 התאמות נגישות
               </button>
-              <button id="clear-data" class="ghost">אפס נתונים</button>
+              <button id="clear-data" class="ghost" data-help="מוחק את כל הביקורות, הליקויים והגיבויים המקומיים במכשיר זה. יש לייצא גיבוי לפני הפעולה.">אפס נתונים</button>
             </div>
           </header>
           <div class="section-heading">
@@ -293,29 +293,29 @@
           <div class="panel-grid">
             <section class="panel">
               <form id="settings-form" class="form-grid">
-                <label class="full">
+                <label class="full" data-help="המפתח נשמר בזיכרון הסשן בלבד ואינו נכלל בגיבוי. הוא דרוש רק כאשר בוחרים לנתח צילום עם AI.">
                   <span>OpenAI API Key</span>
                   <input type="password" name="apiKey" placeholder="sk-..." autocomplete="off" />
                   <small class="muted">נשמר רק עד לסגירת לשונית הדפדפן. נדרש רק לניתוח צילום יזום.</small>
                 </label>
-                <label>
+                <label data-help="שם המודל שישמש לניתוח צילום יזום. יש להזין מודל זמין לחשבון ה-OpenAI שלך.">
                   <span>מודל Vision</span>
                   <input type="text" name="visionModel" value="gpt-4.1-mini" />
                 </label>
-                <label>
+                <label data-help="שם מודל העזר לניתוחים טקסטואליים עתידיים. אין להשתמש בו ללא מפתח API פעיל בסשן.">
                   <span>מודל Reasoning</span>
                   <input type="text" name="reasoningModel" value="o4-mini" />
                 </label>
-                <label>
+                <label data-help="ערך בין 0 ל-1 המוצג לצד הצעות AI. גם ודאות גבוהה אינה מחליפה בדיקה ואישור אנושיים.">
                   <span>סף ודאות</span>
                   <input type="number" name="confidenceThreshold" min="0" max="1" step="0.05" value="0.8" />
                 </label>
-                <label class="full">
+                <label class="full" data-help="תיעוד מקומי של מדיניות הפרטיות והעבודה עם AI. אינו נשלח לשום שירות.">
                   <span>מדיניות פרטיות מקומית</span>
                   <textarea name="privacyNotes" rows="4">המפתח נשמר לזמן הסשן בלבד. צילום נשלח ל-OpenAI רק לאחר לחיצה מפורשת על "נתח צילום עם AI".</textarea>
                 </label>
                 <div class="full form-actions">
-                  <button type="submit">שמור הגדרות</button>
+                  <button type="submit" data-help="שומר את בחירות ה-AI והפרטיות מקומית, ואת המפתח לזמן הסשן בלבד. לאחר השמירה עוברים לביקורת חדשה.">שמור הגדרות</button>
                 </div>
               </form>
             </section>
@@ -376,6 +376,32 @@
               </div>
             </div>
           </section>
+          <section class="panel" aria-labelledby="licensed-role-title">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Licensed accessibility professional</p>
+                <h4 id="licensed-role-title">תפקיד מורשה נגישות</h4>
+                <p class="muted small">הבחנה בין מורשה נגישות מתו״ס לבין מורשה נגישות השירות, לעיון לפני הסתמכות מקצועית.</p>
+              </div>
+              <button id="toggle-licensed-role" type="button" class="ghost" aria-expanded="false" aria-controls="licensed-role-description" data-help="פותח הסבר על תחומי העיסוק של מורשה נגישות ועל מתי נדרשת חוות דעת בתחומו.">הצג הגדרת תפקיד</button>
+            </div>
+            <div id="licensed-role-description" class="hidden" aria-live="polite">
+              <div class="note-box">
+                <h5>מטרת התפקיד</h5>
+                <p>מורשה נגישות הוא איש מקצוע מוסמך בתחום התמחותו, המסייע באפיון, תכנון, בקרה ופיקוח על יישום התאמות נגישות לפי הדין. תפקידו אינו מחליף את רכז הנגישות או את אחריות נותן השירות והמארגן.</p>
+                <h5>שני תחומי התמחות</h5>
+                <ul>
+                  <li><strong>מורשה נגישות מתו״ס</strong> - מייעץ לגבי מבנים, תשתיות וסביבה: דרכי גישה, מפלסים, חניה, רמפות, מדרכות, שטחים ציבוריים ורכיבים בנויים.</li>
+                  <li><strong>מורשה נגישות השירות</strong> - מסייע באפיון, תכנון, בקרה ופיקוח על התאמות השירות: מידע, תקשורת, נהלים, אמצעי עזר, שירות עצמי והתאמות לפי צורך.</li>
+                </ul>
+                <h5>מתי מערבים מורשה?</h5>
+                <p>יש לערב מורשה נגישות כאשר הדין, מסלול הרישוי או סוג העבודה מחייבים חוות דעת או היוועצות בתחומו. לדוגמה, בתהליכים מסוימים של בנייה חדשה, היתר, תעודת גמר ותכניות הנגשה נדרשים מורשה מתו״ס ולעיתים היוועצות במורשה השירות. יש לבדוק כל מקרה לפי התחולה והנוסח המעודכן.</p>
+                <p>באירוע או כנס הפתוח לציבור, האחריות להנגשה נשארת אצל המארגן או נותן השירות. מורשה נגישות יכול לסייע בבדיקת מקום האירוע, פרסום הסדרי הנגישות, הרשמה, שילוט, ישיבה והתאמות תקשורת ושמיעה, לפי סוג האירוע והדין החל.</p>
+                <p class="muted small">המידע הוא תמצית עבודה בלבד. לפני חוות דעת, תכנון, רישוי או קביעה מקצועית יש לאמת תחולה, הסמכה נדרשת והוראות הדין מול המקור הרשמי.</p>
+                <p class="small"><a href="https://www.gov.il/he/pages/licensed_service_accessibility_professionals?chapterIndex=3" target="_blank" rel="noreferrer">מידע רשמי: מורשה נגישות השירות</a> · <a href="https://www.gov.il/he/service/licensed-registration-of-accessibility-matos-a" target="_blank" rel="noreferrer">מידע רשמי: רישום מורשי נגישות מתו״ס</a></p>
+              </div>
+            </div>
+          </section>
           <section class="panel" aria-labelledby="training-title">
             <div class="panel-head"><div><p class="eyebrow">Training</p><h4 id="training-title">תיעוד הדרכת נגישות</h4><p class="muted small">הרשומה נשמרת מקומית ומשויכת לביקורת הפעילה, אם נפתחה.</p></div></div>
             <form id="training-record-form" class="form-grid">
@@ -384,7 +410,7 @@
               <label><span>מנחה / אחראי</span><input name="trainingOwner" type="text" /></label>
               <label class="full"><span>משתתפים ותוכן ההדרכה</span><textarea name="trainingDetails" rows="2" placeholder="מספר משתתפים, נושאים והחלטות"></textarea></label>
               <label class="full"><span>ראיה מצורפת (אופציונלי)</span><input name="trainingEvidence" type="file" accept="image/*,application/pdf" /></label>
-              <div class="full form-actions"><button type="submit" class="ghost">שמור תיעוד הדרכה</button></div>
+              <div class="full form-actions"><button type="submit" class="ghost" data-help="שומר את תיעוד ההדרכה המקומי ומשייך אותו לביקורת הפעילה. אם אין ביקורת פתוחה, לא תישמר רשומה.">שמור תיעוד הדרכה</button></div>
             </form>
             <div id="training-records" class="stack-list"></div>
           </section>
@@ -402,7 +428,7 @@
             <section class="panel">
               <h4>דוח הנחיות לרכז</h4>
               <p>הדוח מבוסס על הליקויים שתועדו בביקורת הפעילה: עדיפות, פעולה נדרשת, דרישה נורמטיבית, מדידות, אחראי ואימות חוזר.</p>
-              <button id="open-supervisor-report" type="button">פתח דוח הנחיות לביקורת הפעילה</button>
+              <button id="open-supervisor-report" type="button" data-help="מכין דוח הנחיות לרכז מתוך הליקויים בביקורת הפעילה ומעביר למסך דוח התיקונים.">פתח דוח הנחיות לביקורת הפעילה</button>
               <p class="muted small">הדוח אינו מחליף חוות דעת סטטוטורית או אימות תחולה של מורשה נגישות.</p>
             </section>
             <section class="panel">
@@ -436,8 +462,8 @@
                 <p class="muted small">מציג רק סקרים שסומנו בשיוך רשותי או שנפתחו כ„רשות מקומית / משרד ציבורי”. אין כאן סנכרון בין מכשירים.</p>
               </div>
               <div class="toolbar">
-                <button id="render-municipal-report" type="button">הצג דוח רשותי</button>
-                <button id="print-municipal-report" class="ghost" type="button">הדפס / שמור PDF</button>
+                <button id="render-municipal-report" type="button" data-help="מציג סיכום מקומי של ביקורות שסומנו כרשותיות, כולל ליקויים פתוחים לפי חומרה.">הצג דוח רשותי</button>
+                <button id="print-municipal-report" class="ghost" type="button" data-help="פותח תצוגת הדפסה של הדוח הרשותי. מהדפדפן אפשר לבחור שמירה כ-PDF.">הדפס / שמור PDF</button>
               </div>
             </div>
             <div id="municipal-report" class="stack-list" aria-live="polite"></div>
@@ -515,7 +541,7 @@
           </div>
           <span class="badge">טרם נבדק</span>
         </div>
-        <div class="status-row">
+        <div class="status-row" data-help="בחר תקין רק לאחר בדיקה; ליקוי פותח טופס תיעוד וראיות; לא רלוונטי מתעד שהפריט אינו חל על האתר או השירות שנבדק.">
           <label><input type="radio" value="pass" /> תקין</label>
           <label><input type="radio" value="fail" /> ליקוי</label>
           <label><input type="radio" value="na" /> לא רלוונטי</label>
@@ -527,7 +553,7 @@
             <p class="regulatory-need"></p>
             <p class="muted small">יש לאמת תחולה, חריגים ומהדורת מקור עם גורם מקצועי מוסמך.</p>
           </details>
-          <label class="file-picker">
+          <label class="file-picker" data-help="ראיה 1 היא התצלום הראשי לניתוח AI. במכשיר נייד אפשר לבחור צילום שמור או לצלם חדש לפי אפשרויות מערכת ההפעלה.">
             <span>ראיה 1: הקשר כללי</span>
             <input type="file" class="issue-photo" accept="image/*" />
             <span class="file-picker-button">בחר צילום</span>
@@ -540,7 +566,7 @@
             <p class="ai-result muted small" aria-live="polite"></p>
             <div class="ai-review-controls hidden" aria-live="polite"></div>
           </div>
-          <label>
+          <label data-help="חומרה משקפת את דחיפות הטיפול והשפעת הליקוי. היא מסייעת בתיעדוף בדוח ואינה קביעה סטטוטורית.">
             <span>חומרה</span>
             <select class="severity-select">
               <option value="low">קל</option>
@@ -556,21 +582,21 @@
           <label><span>מזהה אלמנט קבוע</span><input class="element-id" type="text" placeholder="למשל: כניסה ראשית / WC קומה 2" /></label>
           <label><span>ערך מדוד</span><input class="measured-value" type="text" placeholder="למשל: 76" /></label>
           <label><span>יחידת מדידה</span><input class="measurement-unit" type="text" placeholder="ס״מ, %, ניוטון, לוקס" /></label>
-          <label><span>כלי מדידה</span><select class="measurement-tool"><option value="">לא נמדד</option><option>סרט מדידה</option><option>מד-שיפוע</option><option>מד-כוח דלת</option><option>לוקסמטר</option><option>כלי אוטומטי</option><option>אחר</option></select></label>
+          <label data-help="בחר את הכלי ששימש למדידה כדי שהדוח יאפשר אימות חוזר בשטח."><span>כלי מדידה</span><select class="measurement-tool"><option value="">לא נמדד</option><option>סרט מדידה</option><option>מד-שיפוע</option><option>מד-כוח דלת</option><option>לוקסמטר</option><option>כלי אוטומטי</option><option>אחר</option></select></label>
           <label><span>נקודת המדידה</span><input class="measurement-point" type="text" placeholder="מפלס, ציר, חדר או אלמנט" /></label>
-          <label><span>הדרישה חלה?</span><select class="applicability-decision"><option value="applies">חלה לפי הנתונים הקיימים</option><option value="recommendation">המלצה / תקן מיטבי</option><option value="unknown">לא ניתן לקבוע – חסר מידע</option></select></label>
+          <label data-help="קבע אם הדרישה חלה לפי הנתונים הידועים, אם מדובר בהמלצה, או שחסר מידע. במקרה של ספק אל תקבע תחולה ללא אימות מקצועי."><span>הדרישה חלה?</span><select class="applicability-decision"><option value="applies">חלה לפי הנתונים הקיימים</option><option value="recommendation">המלצה / תקן מיטבי</option><option value="unknown">לא ניתן לקבוע – חסר מידע</option></select></label>
           <label><span>המלצה לפעולה</span><textarea class="issue-recommendation" rows="2" placeholder="מה הפעולה הקונקרטית הנדרשת?"></textarea></label>
           <label><span>מידע חסר / נדרש מומחה</span><textarea class="issue-unknown" rows="2" placeholder="היתר, תקן, מדידה או מהנדס נדרש"></textarea></label>
-          <fieldset class="full compact-fieldset"><legend>השפעה ואופן תיקון</legend><label><input class="affected-group" type="checkbox" value="ניידות" /> ניידות</label><label><input class="affected-group" type="checkbox" value="ראייה" /> ראייה</label><label><input class="affected-group" type="checkbox" value="שמיעה" /> שמיעה</label><label><input class="affected-group" type="checkbox" value="קוגניטיבי / תקשורת" /> קוגניטיבי / תקשורת</label><label><input class="issue-temporary" type="checkbox" /> ליקוי זמני</label><label><input class="alternative-available" type="checkbox" /> קיימת התאמה חלופית כעת</label><label><input class="life-safety" type="checkbox" /> קשור לחיי אדם / פינוי / אש</label></fieldset>
-          <label><span>סוג פעולה</span><select class="remediation-type"><option value="engineering">תיקון הנדסי</option><option value="procedure">שינוי נוהל / שירות</option><option value="maintenance">אחזקה</option></select></label>
+          <fieldset class="full compact-fieldset" data-help="סמן את קבוצות המשתמשים שהליקוי עשוי להשפיע עליהן ואת נסיבותיו. המידע משמש לתיעדוף ולהמלצת התיקון בדוח."><legend>השפעה ואופן תיקון</legend><label><input class="affected-group" type="checkbox" value="ניידות" /> ניידות</label><label><input class="affected-group" type="checkbox" value="ראייה" /> ראייה</label><label><input class="affected-group" type="checkbox" value="שמיעה" /> שמיעה</label><label><input class="affected-group" type="checkbox" value="קוגניטיבי / תקשורת" /> קוגניטיבי / תקשורת</label><label><input class="issue-temporary" type="checkbox" /> ליקוי זמני</label><label><input class="alternative-available" type="checkbox" /> קיימת התאמה חלופית כעת</label><label><input class="life-safety" type="checkbox" /> קשור לחיי אדם / פינוי / אש</label></fieldset>
+          <label data-help="מסווג את אופי הפעולה הדרושה לצורך תיעדוף והקצאת אחריות. בחירה זו אינה מחליפה תכנון או אישור מקצועי."><span>סוג פעולה</span><select class="remediation-type"><option value="engineering">תיקון הנדסי</option><option value="procedure">שינוי נוהל / שירות</option><option value="maintenance">אחזקה</option></select></label>
           <label><span>אחראי לתיקון</span><input class="issue-liable-party" type="text" placeholder="בעלים / שוכר / רשות / קבלן" /></label>
           <label><span>עלות גסה</span><input class="estimated-cost" type="text" placeholder="לא ידוע / טווח משוער" /></label>
-          <label><span>נדרש היתר?</span><select class="permit-needed"><option value="unknown">לא ידוע</option><option value="no">לא</option><option value="yes">כן</option></select></label>
-          <label class="file-picker"><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" /><span class="file-picker-button">בחר צילום</span><span class="file-picker-name muted small">לא נבחר צילום</span></label>
-          <label class="file-picker"><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" /><span class="file-picker-button">בחר קובץ</span><span class="file-picker-name muted small">לא נבחר קובץ</span></label>
-          <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
+          <label data-help="תעד אם ידוע שנדרש היתר. אם אין ודאות, בחר לא ידוע והפנה לבדיקה מול הגורם המורשה או הרשות המתאימה."><span>נדרש היתר?</span><select class="permit-needed"><option value="unknown">לא ידוע</option><option value="no">לא</option><option value="yes">כן</option></select></label>
+          <label class="file-picker" data-help="ראיה 2 מתעדת את האלמנט הספציפי הקשור לליקוי. אפשר לבחור צילום שמור או לצלם חדש."><span>ראיה 2: האלמנט</span><input type="file" class="evidence-photo" data-evidence-kind="אלמנט" accept="image/*" /><span class="file-picker-button">בחר צילום</span><span class="file-picker-name muted small">לא נבחר צילום</span></label>
+          <label class="file-picker" data-help="ראיה 3 מיועדת לפרט, מדידה או סרטון התומכים בממצא. היא נשמרת רק במכשיר זה."><span>ראיה 3: פרט / מדידה / סרטון</span><input type="file" class="evidence-photo" data-evidence-kind="פרט או מדידה" accept="image/*,video/*" /><span class="file-picker-button">בחר קובץ</span><span class="file-picker-name muted small">לא נבחר קובץ</span></label>
+          <div class="full evidence-actions"><button type="button" class="ghost capture-issue-gps" data-help="מבקש הרשאת מיקום ושומר את מיקום הליקוי המקומי. אפשר להמשיך גם ללא GPS.">שמור GPS לליקוי</button><span class="evidence-summary muted small"></span></div>
           <div class="full issue-flow-actions">
-            <button type="button" class="save-issue-next">שמור ליקוי והמשך לפריט הבא</button>
+            <button type="button" class="save-issue-next" data-help="שומר את פרטי הליקוי במכשיר ועובר לפריט הבא בצ׳קליסט. הפעולה אינה סוגרת את הליקוי.">שמור ליקוי והמשך לפריט הבא</button>
             <p class="muted small">הפרטים נשמרים גם תוך כדי מילוי. פעולה זו מאשרת את השמירה ומעבירה לפריט הבא בסבב.</p>
           </div>
         </div>
